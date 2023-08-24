@@ -8,7 +8,7 @@ let prevMusicName = null;
 
 // The following test doesn't work with the Show Media Files button.
 // Uncomment this line to use xmlFileName for testing:
-loadXMLFile(xmlFileName, xml => { displayHierarchy(xml); console.log(csvData); });
+//loadXMLFile(xmlFileName, xml => { displayHierarchy(xml); console.log(csvData); });
 
 
 
