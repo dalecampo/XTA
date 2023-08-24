@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>XTA Converter</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <img src="XTA Logo (Transparent)_300x150.png" alt="XTA Logo">
+    <div class="file-upload">
+        <input type="file" id="xmlFileUpload" accept=".xml">
+        <label for="xmlFileUpload" id="uploadLabel">Add XML File</label>
+    </div>
+    <br>
+    <div class="checkbox-input">
+        <input type="checkbox" id="showMediaFilesCheckbox" class="media-checkbox">
+        <label for="showMediaFilesCheckbox" class="media-custom-checkbox"></label>
+        <span class="heading-2">Show Media Files</span>
+    </div>
+    <br>
+    <div id="xmlHierarchy" class="xml-container"></div>
+    <br>
+    <form>
+        <div>
+            <label for="channel-dropdown">Channel:</label>
+            <select id="channel-dropdown" name="option" value="Select Channel">
+                <option value="Select Channel" selected>Select Channel</option>
+                <option value="AFV KIDS">AFV KIDS</option>
+                <option value="AFV TV">AFV TV</option>
+                <option value="ALPINE TV">ALPINE TV</option>
+                <option value="ANGRY BIRDS">ANGRY BIRDS</option>
+                <option value="ATMOSPHERE'S DRONE">ATMOSPHERE'S DRONE</option>
+                <option value="BEACH BUM TV">BEACH BUM TV</option>
+                <option value="BOB ROSS">BOB ROSS</option>
+                <option value="CHEEKY">CHEEKY</option>
+                <option value="CHIVE TV">CHIVE TV</option>
+                <option value="CRAFTY">CRAFTY</option>
+                <option value="DEEP DIVE">DEEP DIVE</option>
+                <option value="DRIVE TV">DRIVE TV</option>
+                <option value="EASTER TV">EASTER TV</option>
+                <option value="ESCAPE TV">ESCAPE TV</option>
+                <option value="EYE CANDY">EYE CANDY</option>
+                <option value="FEAST">FEAST</option>
+                <option value="FIREPLACE TV">FIREPLACE TV</option>
+                <option value="FORM TV">FORM TV</option>
+                <option value="GAMESPROUT TV">GAMESPROUT TV</option>
+                <option value="HALLOWEEN TV">HALLOWEEN TV</option>
+                <option value="HAPPY TV">HAPPY TV</option>
+                <option value="HOLIDAY TV">HOLIDAY TV</option>
+                <option value="NITRO CIRCUS TV">NITRO CIRCUS TV</option>
+                <option value="ODDLY SATISFYING">ODDLY SATISFYING</option>
+                <option value="PAWS TV">PAWS TV</option>
+                <option value="RED BULL TV">RED BULL TV</option>
+                <option value="ST. PATRICK'S TV">ST. PATRICK'S TV</option>
+                <option value="SUPERHUMAN">SUPERHUMAN</option>
+                <option value="SUPER TOONS TV">SUPER TOONS TV</option>
+                <option value="TATTOO">TATTOO</option>
+                <option value="THROTTLE">THROTTLE</option>
+                <option value="UNTAMED">UNTAMED</option>
+                <option value="VALENTINE'S TV">VALENTINE'S TV</option>
+                <option value="WAYPOINT TV">WAYPOINT TV</option>
+                <option value="WPT">WPT</option>
+                <option value="X GAMES">X GAMES</option>
+            </select>
+        </div>
+        <div>
+            <label for="date">Date Posting:</label>
+            <input type="date" id="date" name="date">
+        </div>
+        <button type="button" id="convert-btn">Convert XML to CSV</button>
+        <div id="downloaded-text"></div>
+    </form>
+    <script type="module" src="script.js"></script>
+    <script>
+        var today = new Date();
+        var dayOfWeek = today.getDay(); // 0 (Sunday) - 6 (Saturday)
+        var daysUntilNextMonday;
+    
+        // If today is not Monday
+        if(dayOfWeek !== 1) {
+            daysUntilNextMonday = (8 - dayOfWeek) % 7; // calculate days until next Monday
+            today.setDate(today.getDate() + daysUntilNextMonday);
+        }
+    
+        var dd = String(today.getDate()).padStart(2, '0');
+        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+        var yyyy = today.getFullYear();
+    
+        var nextMonday = yyyy + '-' + mm + '-' + dd;
+        document.getElementById("date").value = nextMonday;
+    </script>
+    <footer>
+        <p>V2.0 © Dale Campo</p>
+    </footer> 
+</body>
+</html>

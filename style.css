@@ -1,0 +1,293 @@
+html {
+    background: linear-gradient(to bottom, #00122e, #000814);
+    min-height: 100vh;
+}
+  
+body {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 400;
+    font-size: .8rem;
+    color: white;
+    line-height: 1.4rem;
+    margin-top: 10px;
+    margin-bottom: 20px;
+    overflow-x: hidden; /* Hide horizontal scrollbar */
+    overflow-y: hidden; /* Hide vertical scrollbar */
+}
+
+img {
+    max-width: 400px;
+    display: block;
+    margin: auto;
+}
+
+
+
+
+
+.file-upload {
+    width: 300px;
+    height: 100px;
+    border: 6px dashed #003762;
+    border-radius: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    margin-bottom: 10px;
+}
+
+.file-upload input[type="file"] {
+    display: none;
+}
+
+.file-upload label {
+    cursor: pointer;
+    padding: 25px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.file-upload.dragover {
+    border-color: #00a3fb;
+    background-color: rgba(0, 163, 251, 0.25);
+}
+
+.file-upload.has-file {
+    background-color: rgba(38, 181, 76, 0.75);
+    border: 6px solid rgba(38, 181, 76, 1);
+}
+
+
+
+
+.element {
+    margin-left: 30px;
+}
+
+.bin-font {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #ff585d;
+    padding-left: 10px;
+}
+
+.sequence-font {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #00a3fb;
+    padding-left: 10px;
+}
+
+.atm-sequence {
+    color: #ffb114;
+}
+
+.media-file-name {
+    display: none;
+}
+
+.custom-line-break {
+    line-height: 0.5rem;
+}
+
+.bin-checkbox {
+    display: none; /* Hide the default checkbox */
+}
+
+.sequence-checkbox {
+    display: none; /* Hide the default checkbox */
+}
+
+.media-checkbox {
+    display: none; /* Hide the default checkbox */
+}
+
+.custom-checkbox {
+    /*display: none; /* Remove this line when checkbox functionality is working */
+    display: none;
+    width: 15px;
+    height: 15px;
+    background-color: transparent;
+    border: 3px solid #003762;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-top: -7px;
+    margin-left: -10px;
+}
+
+.media-custom-checkbox {
+    display: inline-block;
+    width: 15px;
+    height: 15px;
+    background-color: transparent;
+    border: 3px solid #003762;
+    border-radius: 0.4rem;
+    cursor: pointer;
+    vertical-align: middle;
+    margin-top: -7px;
+    margin-left: -10px;
+}
+
+.custom-checkbox.checked {
+    background-color: #00a3fb;
+}
+
+.media-checkbox:checked + .media-custom-checkbox {
+    background-color: #00a3fb;
+}
+
+.bin-checkbox:checked + .custom-checkbox {
+    background-color: #00a3fb;
+}
+
+.xml-container {
+    padding: 10px;
+    max-width: 750px;
+    width: calc(100% - 100px);
+    height: 400px;
+    overflow-y: auto; /* enable vertical scrolling */
+    border: 4px solid #003762;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    margin: auto;
+}
+
+.xml-container::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.xml-container::-webkit-scrollbar-thumb {
+    background: transparent;
+}
+
+.xml-container:hover::-webkit-scrollbar-thumb {
+    background: #00a3fb;
+    border-radius: 1rem;
+}
+
+.checkbox-input {
+    display: flex;
+    justify-content: center;
+    padding: 10px, 0px, 10px, 0px;
+    width: 50%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.heading-2 {
+    position: relative;
+    margin-left: 10px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-top: -8px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 450px;
+}
+
+input[type="text"] {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+    margin-left: 0.5rem;
+    font-family: Montserrat;
+    color: #00122e;
+    font-size: 1rem;
+}
+
+select {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    margin-bottom: .5rem;
+    margin-left: 0.5rem;
+    font-family: Montserrat;
+    color: #00122e;
+    font-size: 1rem;
+    appearance: none;
+}
+
+select::-ms-expand {
+    display: none; /* hide the down arrow in Internet Explorer */
+}
+
+select option {
+    padding-right: 1rem; /* create space between option text and down arrow */
+}
+
+label {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+  
+/* Upload XML Button */
+label[for="xml-file"] {
+    display: center;
+    margin-top: 0.6rem;
+    margin-bottom: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0.4rem 1rem;
+    border-radius: 0.5rem;
+    border: 2px solid #26b54c;
+    background-color: white;
+    color: #26b54c;
+    font-size: 1.2rem;
+    font-family: 'Montserrat';
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+  
+label[for="xml-file"]:hover {
+    background-color: #26b54c;
+    color: white;
+}
+
+input[type="date"] {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    margin-bottom: 1rem;
+    margin-left: 0.5rem;
+    font-family: Montserrat;
+    color: #00122e;
+    font-size: 1rem;
+}
+  
+#convert-btn {
+    padding: 0.4rem 1rem;
+    border-radius: 0.5rem;
+    border: 2px white;
+    background: linear-gradient(to right, #26b54c, #00a3fb);
+    color: white;
+    font-family: 'Montserrat';
+    font-weight: 700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 0.75rem;
+}
+
+footer {
+    padding: 1rem;
+    text-align: center;
+    width: 100%;
+    font-family: Montserrat;
+    color: #003762;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 50px;
+}
