@@ -12,7 +12,10 @@ body {
     margin-top: 10px;
     margin-bottom: 20px;
     overflow-x: hidden; /* Hide horizontal scrollbar */
-    overflow-y: hidden; /* Hide vertical scrollbar */
+}
+
+body::-webkit-scrollbar-thumb {
+    background: transparent;
 }
 
 img {
