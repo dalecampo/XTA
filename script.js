@@ -1,10 +1,11 @@
 import { track, provider, category, needsClipID } from "./trackingFormulas.js";
 
-var xmlFileName = 'xmlFiles/' + 'Eye Candy 8-14-23.xml';
+var xmlFileName = 'xmlFiles/' + 'XML.xml';
 var csvData = [];
 var csvRowsCount = 0;
 let prevSegmentName = null;
 let prevMusicName = null;
+let xml;
 
 // The following test doesn't work with the Show Media Files button.
 // Uncomment this line to use xmlFileName for testing:
@@ -58,7 +59,7 @@ function handleFileUpload(event) {
         reader.onload = function(e) {
             var xmlString = e.target.result;
             var parser = new DOMParser();
-            var xml = parser.parseFromString(xmlString, "application/xml");
+            xml = parser.parseFromString(xmlString, "application/xml");
             displayHierarchy(xml);
             console.log(csvData);
         }
@@ -79,7 +80,7 @@ function loadXMLFile(file, callback) {
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             var parser = new DOMParser();
-            var xml = parser.parseFromString(this.responseText, "application/xml");
+            xml = parser.parseFromString(this.responseText, "application/xml");
             callback(xml);
         }
     };
@@ -361,17 +362,17 @@ function processBin(binElement, parentElement) {
 
 
 
-// Find segments that start with "ATM_" and initiate the processing for those in alphabetical order.
+// Find segments that start with "ATM" and initiate the processing for those in alphabetical order.
 function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, displayedSequences) {
     // Convert NodeList or HTMLCollection to an array
     var sequenceArray = Array.prototype.slice.call(sequenceElements);
 
-    // Filter out sequences that do not start with "ATM_"
+    // Filter out sequences that do not start with "ATM"
         var atmSequenceArray = sequenceArray.filter(function(sequenceElement) {
             var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
             if (sequenceNameElement) {
                 var sequenceName = sequenceNameElement.textContent;
-                return sequenceName.startsWith("ATM_");
+                return sequenceName.startsWith("ATM");
             }
             return false;
         });
@@ -397,231 +398,251 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
 
 
 
-// Process comps within ATM_ segments.
+// Process comps within ATM segments.
 function processSequence(sequenceElement, parentElement, indentLevel, displayedSequences) {
+
+
     // Get the 'name' element from the current sequence
     var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
+    // Get the sequence id
+    var sequenceId = sequenceElement.getAttribute('id');
+    let sequenceName;
 
-    // Check if the sequence has a name
-    if (sequenceNameElement) {
+    // Check if the sequence has a name.
+    if (!sequenceNameElement) {        
+        // Find the sequence element with the same id and a nested <name> element.
+        var foundElement = xml.querySelector(`sequence[id="${sequenceId}"] name`);
+        
+        // Check if a matching element is found.
+        if (foundElement) {
+            // Save the found element to sequenceElement.
+            sequenceElement = foundElement.parentElement;
+
+            // Save the textContent of the name tag to sequenceName
+            sequenceName = foundElement.textContent;
+
+            //console.log(`found ${sequenceId}: ${sequenceName}`); // Output the sequenceName value
+        } else {
+            console.log(`SEQUENCE NOT FOUND`);
+        }
+    } else {
         // Get the sequence name
-        var sequenceName = sequenceNameElement.textContent;
-        console.log(`SEQ: ${sequenceName}`);
-        // Get the sequence id
-        var sequenceId = sequenceElement.getAttribute('id');
-        //console.log(`SEQ ID: ${sequenceId}`);
+        sequenceName = sequenceNameElement.textContent;
+    }
 
-        // If this sequence has not already been displayed...
-        if (!displayedSequences.has(sequenceId)) {
-            // Add the sequence ID to the Set of displayed sequences
-            displayedSequences.add(sequenceId);
+    console.log(`SEQ: ${sequenceName}`);
+    console.log(`SEQ ID: ${sequenceId}`);    
 
-            // Create a <div> for a line break with custom height.
-            var lineBreakDiv = document.createElement('div');
-            lineBreakDiv.classList.add('custom-line-break');
-            // Create a line break element.
-            var lineBreak = document.createElement('br');
-            // Append the line break to the <div>.
-            lineBreakDiv.appendChild(lineBreak);
-            // Append the <div> to the parent element.
-            parentElement.appendChild(lineBreakDiv);
+    // If this sequence has not already been displayed...
+    if (!displayedSequences.has(sequenceId)) {
+        // Add the sequence ID to the Set of displayed sequences
+        displayedSequences.add(sequenceId);
 
-            // Create a <div> for the sequence.
-            var sequenceDiv = document.createElement('div');
-            // Add the 'element' class and the appropriate indentation level class.
-            sequenceDiv.classList.add('element');
-            sequenceDiv.classList.add(`indent-level-${indentLevel}`);
+        // Create a <div> for a line break with custom height.
+        var lineBreakDiv = document.createElement('div');
+        lineBreakDiv.classList.add('custom-line-break');
+        // Create a line break element.
+        var lineBreak = document.createElement('br');
+        // Append the line break to the <div>.
+        lineBreakDiv.appendChild(lineBreak);
+        // Append the <div> to the parent element.
+        parentElement.appendChild(lineBreakDiv);
 
-            // Create a <span> for the sequence name and apply the 'sequence-font' class.
-            var seqText = document.createElement('span');
-            seqText.classList.add('sequence-font');
+        // Create a <div> for the sequence.
+        var sequenceDiv = document.createElement('div');
+        // Add the 'element' class and the appropriate indentation level class.
+        sequenceDiv.classList.add('element');
+        sequenceDiv.classList.add(`indent-level-${indentLevel}`);
 
-            // Create a checkbox input element
-            var sequenceCheckbox = document.createElement('input');
-            sequenceCheckbox.type = 'checkbox';
-            sequenceCheckbox.id = 'checkbox-' + sequenceName;
-            sequenceCheckbox.classList.add('sequence-checkbox');
-            // Append this checkbox to the sequence's <div> element.
-            sequenceDiv.appendChild(sequenceCheckbox);
+        // Create a <span> for the sequence name and apply the 'sequence-font' class.
+        var seqText = document.createElement('span');
+        seqText.classList.add('sequence-font');
 
-            // Create a label for the checkbox
-            var sequenceLabel = document.createElement('label');
-            sequenceLabel.for = 'checkbox-' + sequenceName;
-            sequenceLabel.classList.add('custom-checkbox');
+        // Create a checkbox input element
+        var sequenceCheckbox = document.createElement('input');
+        sequenceCheckbox.type = 'checkbox';
+        sequenceCheckbox.id = 'checkbox-' + sequenceName;
+        sequenceCheckbox.classList.add('sequence-checkbox');
+        // Append this checkbox to the sequence's <div> element.
+        sequenceDiv.appendChild(sequenceCheckbox);
 
-            // Add a 'click' event listener to this custom checkbox.
-            sequenceLabel.addEventListener('click', function() {
-                // Toggle the .checked class on the custom checkbox.
-                this.classList.toggle('checked');
-            
-                // Toggle the checked state of the default checkbox.
-                sequenceCheckbox.checked = !sequenceCheckbox.checked;
-            
-                // Get the parent div of the sequenceDiv that contains both the clicked checkbox and the nested checkboxes.
-                var parentDiv = sequenceDiv;
-                // Get all nested checkboxes within this parent div.
-                var nestedCheckboxes = parentDiv.querySelectorAll('.bin-checkbox, .sequence-checkbox');
-                // Change the checked state of each nested checkbox to match the parent.
-                for (var i = 0; i < nestedCheckboxes.length; i++) {
-                    nestedCheckboxes[i].checked = sequenceCheckbox.checked;
-                    // Also toggle the 'checked' class on their associated labels
-                    var associatedLabel = document.querySelector(`label[for="${nestedCheckboxes[i].id}"]`);
-                    if (associatedLabel) {
-                        if (nestedCheckboxes[i].checked) {
-                            associatedLabel.classList.add('checked');
-                        } else {
-                            associatedLabel.classList.remove('checked');
-                        }
+        // Create a label for the checkbox
+        var sequenceLabel = document.createElement('label');
+        sequenceLabel.for = 'checkbox-' + sequenceName;
+        sequenceLabel.classList.add('custom-checkbox');
+
+        // Add a 'click' event listener to this custom checkbox.
+        sequenceLabel.addEventListener('click', function() {
+            // Toggle the .checked class on the custom checkbox.
+            this.classList.toggle('checked');
+        
+            // Toggle the checked state of the default checkbox.
+            sequenceCheckbox.checked = !sequenceCheckbox.checked;
+        
+            // Get the parent div of the sequenceDiv that contains both the clicked checkbox and the nested checkboxes.
+            var parentDiv = sequenceDiv;
+            // Get all nested checkboxes within this parent div.
+            var nestedCheckboxes = parentDiv.querySelectorAll('.bin-checkbox, .sequence-checkbox');
+            // Change the checked state of each nested checkbox to match the parent.
+            for (var i = 0; i < nestedCheckboxes.length; i++) {
+                nestedCheckboxes[i].checked = sequenceCheckbox.checked;
+                // Also toggle the 'checked' class on their associated labels
+                var associatedLabel = document.querySelector(`label[for="${nestedCheckboxes[i].id}"]`);
+                if (associatedLabel) {
+                    if (nestedCheckboxes[i].checked) {
+                        associatedLabel.classList.add('checked');
+                    } else {
+                        associatedLabel.classList.remove('checked');
                     }
                 }
+            }
+        });
+
+        // Append this label to the sequence's <div> element.
+        sequenceDiv.appendChild(sequenceLabel);
+
+        // If the sequence name starts with "ATM", add a specific class
+        if (sequenceName.startsWith("ATM")) {
+            seqText.classList.add('atm-sequence');
+        }
+
+        // Set the text content to the sequence name.
+        seqText.textContent = sequenceName;
+
+        // Append the <span> to the sequence <div>.
+        sequenceDiv.appendChild(seqText);
+        // Append the sequence <div> to the parent element.
+        parentElement.appendChild(sequenceDiv);
+
+        // Only output media file names for sequences whose name do NOT begin with "ATM".
+        if (!sequenceName.startsWith("ATM")) {
+            // Store all <media> elements from the current sequence.
+            var mediaElements = sequenceElement.getElementsByTagName('media');
+
+            // Create Sets to hold unique video and audio names.
+            var videoNamesSet = new Set();
+            var audioNamesSet = new Set();
+
+            // Loop through each media element.
+            for (var j = 0; j < mediaElements.length; j++) {
+                // Get all 'video' and 'audio' elements within the current media element.
+                var videoElements = mediaElements[j].getElementsByTagName('video');
+                var audioElements = mediaElements[j].getElementsByTagName('audio');
+                var musicFile = "";
+                
+                // Seg
+                let segmentName = null;
+
+                // Extract video file names, log them, and filter out any undefined values.
+                [...videoElements].forEach(el => {
+                    var fileElements = el.getElementsByTagName('file');
+                    
+                    // Create the row object's contents for each video file.
+                    [...fileElements].forEach(fileEl => {
+                        var clipFileName = fileEl.getElementsByTagName('name')[0]?.textContent;
+                        if (clipFileName) { 
+                            // Comp Name
+                            let compName = null;
+                            compName = sequenceName;
+
+                            var sequenceCheckbox = parentElement.querySelector('.sequence-checkbox');
+                            segmentName = sequenceCheckbox.id.replace('checkbox-', '');
+                            
+                            if (!segmentName.startsWith("ATM")) {
+                                //segmentName = sequenceName;
+                                console.log("FOUND A SEGMENT THAT DID NOT START WITH ATM");
+                                compName = segmentName;
+                                segmentName = prevSegmentName; // use previous segment name
+                            }
+
+                            // Provider
+                            let clipProvider = null;
+                            clipProvider = provider(clipFileName);    
+                            // Clip ID
+                            let clipID = null;
+                            clipID = needsClipID(clipProvider);
+                            // Category
+                            let clipCategory = null;
+                            clipCategory = category(clipFileName, clipProvider)
+                            // Clip URL
+                            const clipURL = track(clipFileName, clipProvider, clipCategory);                                
+                            
+                            // Repeat the process for audio file names.
+                            [...audioElements].forEach(el => {
+                                var fileElements = el.getElementsByTagName('file');
+                                [...fileElements].forEach(fileEl => {
+                                    var musicFileName = fileEl.getElementsByTagName('name')[0]?.textContent;
+                                    if (musicFileName) { 
+                                        audioNamesSet.add(musicFileName);
+                                        musicFile = musicFileName;
+                                    }
+                                });
+                            });
+
+                            if (!musicFile) {
+                                musicFile = prevMusicName;
+                            }
+
+                            console.log(`VID: ${clipFileName}`);
+                            videoNamesSet.add(clipFileName);
+
+                            var row = {
+                                segName: `"${segmentName}"`,
+                                compName: `"${compName}"`,
+                                clipName: `"${clipFileName}"`,
+                                clipURL: `"${clipURL}"`,
+                                musicFile: `"${musicFile}"`,
+                                channel: "TBD", // Resets when Convert gets clicked
+                                clipID: clipID,
+                                provider: clipProvider,
+                                category: clipCategory,
+                                date: "TBD", // Resets when Convert gets clicked
+                            };
+
+                            csvData.push(row);
+                            //prevSegmentName = segmentName;
+                            // Log rows for console troubleshooting:
+                            //console.log(row);
+                        }
+                        prevSegmentName = segmentName;
+                        prevMusicName = musicFile;
+                    }); 
+                });
+                console.log(`AUD: ${musicFile}`);
+            }
+
+            // For each unique video name, create a new div, add the appropriate classes and text, and append it to the sequence div.
+            videoNamesSet.forEach(name => {
+                var mediaDiv = document.createElement('div');
+                mediaDiv.classList.add('element');
+                mediaDiv.classList.add(`indent-level-${indentLevel}`);
+                if (!showMediaFiles) {
+                    mediaDiv.classList.add('media-file-name');
+                }
+                mediaDiv.textContent = name;
+                sequenceDiv.appendChild(mediaDiv);
             });
 
-            // Append this label to the sequence's <div> element.
-            sequenceDiv.appendChild(sequenceLabel);
-
-            // If the sequence name starts with "ATM_", add a specific class
-            if (sequenceName.startsWith("ATM_")) {
-                seqText.classList.add('atm-sequence');
-            }
-
-            // Set the text content to the sequence name.
-            seqText.textContent = sequenceName;
-
-            // Append the <span> to the sequence <div>.
-            sequenceDiv.appendChild(seqText);
-            // Append the sequence <div> to the parent element.
-            parentElement.appendChild(sequenceDiv);
-
-            // Only output media file names for sequences whose name do NOT begin with "ATM_".
-            if (!sequenceName.startsWith("ATM_")) {
-                // Store all <media> elements from the current sequence.
-                var mediaElements = sequenceElement.getElementsByTagName('media');
-
-                // Create Sets to hold unique video and audio names.
-                var videoNamesSet = new Set();
-                var audioNamesSet = new Set();
-
-                // Loop through each media element.
-                for (var j = 0; j < mediaElements.length; j++) {
-                    // Get all 'video' and 'audio' elements within the current media element.
-                    var videoElements = mediaElements[j].getElementsByTagName('video');
-                    var audioElements = mediaElements[j].getElementsByTagName('audio');
-                    var musicFile = "";
-                    
-                    // Seg
-                    let segmentName = null;
-
-                    // Extract video file names, log them, and filter out any undefined values.
-                    [...videoElements].forEach(el => {
-                        var fileElements = el.getElementsByTagName('file');
-                        
-                        // Create the row object's contents for each video file.
-                        [...fileElements].forEach(fileEl => {
-                            var clipFileName = fileEl.getElementsByTagName('name')[0]?.textContent;
-                            if (clipFileName) { 
-                                // Comp Name
-                                let compName = null;
-                                compName = sequenceName;
-
-                                var sequenceCheckbox = parentElement.querySelector('.sequence-checkbox');
-                                segmentName = sequenceCheckbox.id.replace('checkbox-', '');
-                                
-                                if (!segmentName.startsWith("ATM_")) {
-                                    //segmentName = sequenceName;
-                                    console.log("FOUND A SEGMENT THAT DID NOT START WITH ATM_");
-                                    compName = segmentName;
-                                    segmentName = prevSegmentName; // use previous segment name
-                                }
-
-                                // Provider
-                                let clipProvider = null;
-                                clipProvider = provider(clipFileName);    
-                                // Clip ID
-                                let clipID = null;
-                                clipID = needsClipID(clipProvider);
-                                // Category
-                                let clipCategory = null;
-                                clipCategory = category(clipFileName, clipProvider)
-                                // Clip URL
-                                const clipURL = track(clipFileName, clipProvider, clipCategory);                                
-                                
-                                // Repeat the process for audio file names.
-                                [...audioElements].forEach(el => {
-                                    var fileElements = el.getElementsByTagName('file');
-                                    [...fileElements].forEach(fileEl => {
-                                        var musicFileName = fileEl.getElementsByTagName('name')[0]?.textContent;
-                                        if (musicFileName) { 
-                                            audioNamesSet.add(musicFileName);
-                                            musicFile = musicFileName;
-                                        }
-                                    });
-                                });
-
-                                if (!musicFile) {
-                                    musicFile = prevMusicName;
-                                }
-
-                                console.log(`VID: ${clipFileName}`);
-                                videoNamesSet.add(clipFileName);
-
-                                var row = {
-                                    segName: `"${segmentName}"`,
-                                    compName: `"${compName}"`,
-                                    clipName: `"${clipFileName}"`,
-                                    clipURL: `"${clipURL}"`,
-                                    musicFile: `"${musicFile}"`,
-                                    channel: "TBD", // Resets when Convert gets clicked
-                                    clipID: clipID,
-                                    provider: clipProvider,
-                                    category: clipCategory,
-                                    date: "TBD", // Resets when Convert gets clicked
-                                };
-
-                                csvData.push(row);
-                                //prevSegmentName = segmentName;
-                                // Log rows for console troubleshooting:
-                                //console.log(row);
-                            }
-                            prevSegmentName = segmentName;
-                            prevMusicName = musicFile;
-                        }); 
-                    });
-                    console.log(`AUD: ${musicFile}`);
+            // Repeat the process for each unique audio name.
+            audioNamesSet.forEach(name => {
+                var mediaDiv = document.createElement('div');
+                mediaDiv.classList.add('element');
+                mediaDiv.classList.add(`indent-level-${indentLevel}`);
+                if (!showMediaFiles) {
+                    mediaDiv.classList.add('media-file-name');
                 }
+                mediaDiv.textContent = name;
+                sequenceDiv.appendChild(mediaDiv);
+            });
+            console.log(``);
+        }
 
-                // For each unique video name, create a new div, add the appropriate classes and text, and append it to the sequence div.
-                videoNamesSet.forEach(name => {
-                    var mediaDiv = document.createElement('div');
-                    mediaDiv.classList.add('element');
-                    mediaDiv.classList.add(`indent-level-${indentLevel}`);
-                    if (!showMediaFiles) {
-                        mediaDiv.classList.add('media-file-name');
-                    }
-                    mediaDiv.textContent = name;
-                    sequenceDiv.appendChild(mediaDiv);
-                });
+        // Get all nested 'sequence' elements from the current sequence.
+        var nestedSequenceElements = sequenceElement.getElementsByTagName('sequence');
 
-                // Repeat the process for each unique audio name.
-                audioNamesSet.forEach(name => {
-                    var mediaDiv = document.createElement('div');
-                    mediaDiv.classList.add('element');
-                    mediaDiv.classList.add(`indent-level-${indentLevel}`);
-                    if (!showMediaFiles) {
-                        mediaDiv.classList.add('media-file-name');
-                    }
-                    mediaDiv.textContent = name;
-                    sequenceDiv.appendChild(mediaDiv);
-                });
-                console.log(``);
-            }
-
-            // Get all nested 'sequence' elements from the current sequence.
-            var nestedSequenceElements = sequenceElement.getElementsByTagName('sequence');
-
-            // Process each nested sequence
-            for (var i = 0; i < nestedSequenceElements.length; i++) {
-                processSequence(nestedSequenceElements[i], sequenceDiv, indentLevel + 1, displayedSequences);
-            }
+        // Process each nested sequence
+        for (var i = 0; i < nestedSequenceElements.length; i++) {
+            processSequence(nestedSequenceElements[i], sequenceDiv, indentLevel + 1, displayedSequences);
         }
     }
 }
