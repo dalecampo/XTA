@@ -1,11 +1,13 @@
 import { track, provider, category, needsClipID } from "./trackingFormulas.js";
 
-var xmlFileName = 'xmlFiles/' + 'XML.xml';
+var xmlFileName = 'xmlFiles/' + 'Eye Candy 8_21_23.xml';
 var csvData = [];
 var csvRowsCount = 0;
 let prevSegmentName = null;
 let prevMusicName = null;
 let xml;
+
+//debugger;
 
 // The following test doesn't work with the Show Media Files button.
 // Uncomment this line to use xmlFileName for testing:
@@ -408,12 +410,12 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
     var sequenceId = sequenceElement.getAttribute('id');
     let sequenceName;
 
-    // Check if the sequence has a name.
+    // If the <sequence> element has no nested <name> element, find the element with the same id that does have it.
     if (!sequenceNameElement) {        
         // Find the sequence element with the same id and a nested <name> element.
         var foundElement = xml.querySelector(`sequence[id="${sequenceId}"] name`);
         
-        // Check if a matching element is found.
+        // If the matching element was found:
         if (foundElement) {
             // Save the found element to sequenceElement.
             sequenceElement = foundElement.parentElement;
@@ -421,9 +423,9 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
             // Save the textContent of the name tag to sequenceName
             sequenceName = foundElement.textContent;
 
-            //console.log(`found ${sequenceId}: ${sequenceName}`); // Output the sequenceName value
+            //console.log(`Found ${sequenceId}: ${sequenceName}`);
         } else {
-            console.log(`SEQUENCE NOT FOUND`);
+            console.log(`ERROR: SEQUENCE NOT FOUND`);
         }
     } else {
         // Get the sequence name
@@ -523,6 +525,8 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
             var videoNamesSet = new Set();
             var audioNamesSet = new Set();
 
+            //console.log(`mediaElements.length: ${mediaElements.length}`);
+
             // Loop through each media element.
             for (var j = 0; j < mediaElements.length; j++) {
                 // Get all 'video' and 'audio' elements within the current media element.
@@ -539,7 +543,30 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                     
                     // Create the row object's contents for each video file.
                     [...fileElements].forEach(fileEl => {
+                        let fileId = fileEl.getAttribute('id');
                         var clipFileName = fileEl.getElementsByTagName('name')[0]?.textContent;
+
+                        // WORK IN PROGRESS BELOW
+
+                        // If the <file> element has no nested <name> element, find the element with the same id that does have it.
+                        if (!clipFileName) {        
+
+                            // Find the file element with the same id and a nested <name> element.
+                            var foundElement = xml.querySelector(`file[id="${fileId}"] name`);
+                            
+                            // If the matching element was found:
+                            if (foundElement) {
+                                // Save the textContent of the name tag to fileName
+                                clipFileName = foundElement.textContent;
+
+                                //console.log(`Found ${fileId}: ${clipFileName}`);
+                            } else {
+                                console.log(`ERROR: <FILE> ELEMENT NOT FOUND`);
+                            }
+                        }
+                        // WORK IN PROGRESS ABOVE
+
+                        //console.log(`clipFileName: ${clipFileName}`);
                         if (clipFileName) { 
                             // Comp Name
                             let compName = null;
