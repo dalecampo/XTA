@@ -1,11 +1,12 @@
 import { track, provider, category, needsClipID } from "./trackingFormulas.js";
 
-var xmlFileName = 'xmlFiles/' + 'Eye Candy 8_21_23.xml';
+var xmlFileName = 'xmlFiles/' + 'Easter.xml';
 var csvData = [];
 var csvRowsCount = 0;
 let prevSegmentName = null;
 let prevMusicName = null;
 let xml;
+const messageText = document.getElementById("message-text");
 
 //debugger;
 
@@ -13,7 +14,7 @@ let xml;
 // Uncomment this line to use xmlFileName for testing:
 //loadXMLFile(xmlFileName, xml => { displayHierarchy(xml); console.log(csvData); });
 
-
+//messageText.innerHTML = "TEST this is lowercase.";
 
 
 
@@ -185,22 +186,33 @@ document.getElementById('convert-btn').addEventListener('click', function() {
     var numberOfRowsInData = (data.match(/\n/g) || []).length;
     console.log(`numberOfRowsInData: ${numberOfRowsInData}`);
 
-    // Combine headers and data
-    var csvString = headers + data;
+    if (numberOfRowsInData > 1) {
+        // Combine headers and data
+        var csvString = headers + data;
 
-    // Create a Blob with the CSV data
-    var blob = new Blob([csvString], {type: 'text/csv;charset=utf-8;'});
+        // Create a Blob with the CSV data
+        var blob = new Blob([csvString], {type: 'text/csv;charset=utf-8;'});
 
-    // Use URL.createObjectURL() to create a URL representing the Blob
-    var url = URL.createObjectURL(blob);
+        // Use URL.createObjectURL() to create a URL representing the Blob
+        var url = URL.createObjectURL(blob);
 
-    var downloadFileName = channel + "_" + formattedDate.replace(/\//g, "-"); + "_Tracking.csv";
+        var downloadFileName = channel + "_" + formattedDate.replace(/\//g, "-"); + "_Tracking.csv";
 
-    // Create a link and click it to download the CSV file
-    var link = document.createElement("a");
-    link.href = url;
-    link.download = downloadFileName;
-    link.click();
+        if (channel === "Select Channel") {
+            messageText.innerHTML = "Select Channel";
+        } else {
+            // Create a link and click it to download the CSV file
+            var link = document.createElement("a");
+            link.href = url;
+            link.download = downloadFileName;
+            link.click();
+            messageText.innerHTML = "Downloaded CSV!";
+        }
+    } else if (!xml) {
+        messageText.innerHTML = "Upload XML";
+    } else {
+        messageText.innerHTML = "Error: Empty CSV";
+    }
 
     // It's important to revoke the object URL after use to avoid memory leaks
     setTimeout(function() { URL.revokeObjectURL(url); }, 0);
@@ -222,6 +234,7 @@ function displayHierarchy(xml) {
     var projectElement = xml.getElementsByTagName('project')[0];
     if (!projectElement) {
         console.error("Error: The XML file does not contain a <project> element.");
+        messageText.innerHTML = "XML Missing <Project> Element";
         return;
     }
 
@@ -255,7 +268,7 @@ function displayHierarchy(xml) {
     }
     
     csvRowsCount = csvData.length;
-    console.log(csvRowsCount);
+    //console.log(csvRowsCount);
 }
 
 
@@ -374,6 +387,8 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
             var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
             if (sequenceNameElement) {
                 var sequenceName = sequenceNameElement.textContent;
+                console.log(`sequenceName: ${sequenceName}`);
+                console.log(`startsWithATM: ${sequenceName.startsWith("ATM")}`);
                 return sequenceName.startsWith("ATM");
             }
             return false;
@@ -423,7 +438,7 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
             // Save the textContent of the name tag to sequenceName
             sequenceName = foundElement.textContent;
 
-            //console.log(`Found ${sequenceId}: ${sequenceName}`);
+            console.log(`Found ${sequenceId}: ${sequenceName}`);
         } else {
             console.log(`ERROR: SEQUENCE NOT FOUND`);
         }
