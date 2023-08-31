@@ -25,7 +25,96 @@ img {
 }
 
 
+/* Instructions Icon and Text */
 
+.circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 30px;
+}
+
+.instructions-icon-1, .instructions-icon-2 {
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background-color: #00a3fb;
+    color: #003762;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.5rem;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.instructions-label {
+    font-size: 1rem;
+    font-family: 'Montserrat';
+    font-weight: 700;
+}
+
+.overlay-1, .overlay-2 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: none;
+    z-index: 9999;
+}
+
+.instructions-1, .instructions-2 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    width: calc(100% - 120px); /* Adjust the width as needed */
+    border: 4px solid #003762;
+    border-radius: 1rem;
+    text-align: left;
+}
+
+.instructions-1 {
+    max-width: 500px;
+}
+
+.instructions-2 {
+    max-width: 600px;
+}
+
+.instructions-1 h3, .instructions-2 h3 {
+    color: #00a3fb;
+    margin-top: 0;
+    text-align: center;
+}
+
+.instructions-1 ol, .instructions-2 ol {
+    padding-left: 20px;
+    counter-reset: my-counter;
+}
+
+.instructions-1 ol li, .instructions-2 ol li {
+    list-style-type: none;
+    counter-increment: my-counter;
+    margin-bottom: 0.9rem;
+    text-indent: -1rem; /* Add a negative indentation */
+    padding-left: 1rem; /* Add padding to create the hanging effect */
+}
+
+.instructions-1 ol li:before, .instructions-2 ol li:before {
+    content: counter(my-counter) ". ";
+    color: #00a3fb;
+    font-weight: 700;
+}
+
+
+/* Rest of Styling */
 
 
 .file-upload {
@@ -60,9 +149,6 @@ img {
     background-color: rgba(38, 181, 76, 0.75);
     border: 6px solid rgba(38, 181, 76, 1);
 }
-
-
-
 
 .element {
     margin-left: 30px;
@@ -149,7 +235,7 @@ img {
     padding: 10px;
     max-width: 750px;
     width: calc(100% - 100px);
-    height: 400px;
+    height: 300px;
     overflow-y: auto; /* enable vertical scrolling */
     border: 4px solid #003762;
     border-radius: 1rem;

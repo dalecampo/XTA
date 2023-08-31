@@ -8,6 +8,21 @@
 </head>
 <body>
     <img src="XTA Logo (Transparent)_300x150.png" alt="XTA Logo">
+    <div class="circle">
+        <div class="instructions-icon-1">?</div>
+        <span class="instructions-label">How To Get Started</span>
+    </div>
+    <div class="overlay-1">
+        <div class="instructions-1">
+            <h3>Creating the XML</h3>
+            <ol>
+                <li>In Premiere Pro, within your Project Panel, deselect all items.</li>
+                <li>Go to File > Export > Final Cut Pro XML.</li>
+                <li>Put the XML into your project folder's 4_Project Files subfolder.</li>
+                <li>Drag/drop or click to upload your XML on this page.</li>
+            </ol>
+        </div>
+    </div>
     <div class="file-upload">
         <input type="file" id="xmlFileUpload" accept=".xml">
         <label for="xmlFileUpload" id="uploadLabel">Add XML File</label>
@@ -70,6 +85,22 @@
         </div>
         <button type="button" id="convert-btn">Convert XML to CSV</button>
         <div id="message-text"></div>
+        <div class="circle">
+            <div class="instructions-icon-2">?</div>
+            <span class="instructions-label">How To Use The CSV</span>
+        </div>
+        <div class="overlay-2">
+            <div class="instructions-2">
+                <h3>Using the CSV</h3>
+                <ol>
+                    <li>In your channel dashboard, create a blank sheet/tab.</li>
+                    <li>Go to File > Import and select your CSV.</li>
+                    <li>In the popup dialog, select Replace current sheet.</li>
+                    <li>Fix "Add Manually" fields and remove rows as needed.</li>
+                    <li>Copy the corrected tracking. Use CMD+Shift+V to paste into VOD Content Tracking.</li>
+                </ol>
+            </div>
+        </div>
     </form>
     <script type="module" src="script.js"></script>
     <script>

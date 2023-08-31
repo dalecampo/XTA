@@ -1,6 +1,7 @@
 import { track, provider, category, needsClipID } from "./trackingFormulas.js";
 
-var xmlFileName = 'xmlFiles/' + 'Easter.xml';
+//var xmlFileName = 'xmlFiles/' + 'OSTV 08-28-23 cleaned Dale test_1.xml';
+var xmlFileName = 'xmlFiles/' + 'Eye Candy 8-14-23.xml';
 var csvData = [];
 var csvRowsCount = 0;
 let prevSegmentName = null;
@@ -14,7 +15,7 @@ const messageText = document.getElementById("message-text");
 // Uncomment this line to use xmlFileName for testing:
 //loadXMLFile(xmlFileName, xml => { displayHierarchy(xml); console.log(csvData); });
 
-//messageText.innerHTML = "TEST this is lowercase.";
+
 
 
 
@@ -77,6 +78,29 @@ function handleFileUpload(event) {
 
 
 
+// Event listener for the "How to Get Started" Instructions area:
+document.querySelector('.instructions-icon-1').addEventListener('click', function() {
+    document.querySelector('.overlay-1').style.display = 'block';
+});
+  
+document.querySelector('.overlay-1').addEventListener('click', function() {
+    document.querySelector('.overlay-1').style.display = 'none';
+});
+
+
+// Event listener for the "How To Use The CSV" Instructions area:
+document.querySelector('.instructions-icon-2').addEventListener('click', function() {
+    document.querySelector('.overlay-2').style.display = 'block';
+});
+  
+document.querySelector('.overlay-2').addEventListener('click', function() {
+    document.querySelector('.overlay-2').style.display = 'none';
+});
+
+
+
+
+
 // Load the XML file.
 function loadXMLFile(file, callback) {
     var xhttp = new XMLHttpRequest();
@@ -109,6 +133,7 @@ mediaCheckbox.addEventListener('change', function() {
    // Reload and redisplay the XML hierarchy.
    handleFileUpload(event);
 });
+
 
 
 
@@ -221,6 +246,7 @@ document.getElementById('convert-btn').addEventListener('click', function() {
 
 
 
+
 // Show the visual hierarchy of the XML both on the webpage and in the browser's console.
 function displayHierarchy(xml) {
     // Get the HTML element with id 'xmlHierarchy'. We'll append elements to xmlHierarchyDiv to display the hierarchy on the webpage.
@@ -270,6 +296,7 @@ function displayHierarchy(xml) {
     csvRowsCount = csvData.length;
     //console.log(csvRowsCount);
 }
+
 
 
 
@@ -377,40 +404,47 @@ function processBin(binElement, parentElement) {
 
 
 
+
 // Find segments that start with "ATM" and initiate the processing for those in alphabetical order.
 function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, displayedSequences) {
     // Convert NodeList or HTMLCollection to an array
     var sequenceArray = Array.prototype.slice.call(sequenceElements);
 
     // Filter out sequences that do not start with "ATM"
-        var atmSequenceArray = sequenceArray.filter(function(sequenceElement) {
-            var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
-            if (sequenceNameElement) {
-                var sequenceName = sequenceNameElement.textContent;
-                console.log(`sequenceName: ${sequenceName}`);
-                console.log(`startsWithATM: ${sequenceName.startsWith("ATM")}`);
-                return sequenceName.startsWith("ATM");
-            }
-            return false;
-        });
+    var atmSequenceArray = sequenceArray.filter(function(sequenceElement) {
+        var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
+        if (sequenceNameElement) {
+            var sequenceName = sequenceNameElement.textContent;
+            console.log(`sequenceName: ${sequenceName}`);
+            //console.log(`startsWithATM: ${sequenceName.startsWith("ATM")}`);
+            
+            // This is the default:
+            return sequenceName.startsWith("ATM");
 
-        // Sort the array based on the textContent of the 'name' element
-        atmSequenceArray.sort(function(a, b) {
-            var nameA = a.getElementsByTagName('name')[0]?.textContent;
-            var nameB = b.getElementsByTagName('name')[0]?.textContent;
+            // This is the test:
+            //return sequenceName;
+        }
+        return false;
+    });
 
-            if (nameA && nameB) {
-                return nameA.localeCompare(nameB);
-            } else {
-                return 0; // If either nameA or nameB is undefined, consider them equal
-            }
-        });
+    // Sort the array based on the textContent of the 'name' element
+    atmSequenceArray.sort(function(a, b) {
+        var nameA = a.getElementsByTagName('name')[0]?.textContent;
+        var nameB = b.getElementsByTagName('name')[0]?.textContent;
+
+        if (nameA && nameB) {
+            return nameA.localeCompare(nameB);
+        } else {
+            return 0; // If either nameA or nameB is undefined, consider them equal
+        }
+    });
 
     // Process each ATM sequence
     for (var i = 0; i < atmSequenceArray.length; i++) {
         processSequence(atmSequenceArray[i], parentElement, indentLevel, displayedSequences);
     }
 }
+
 
 
 
