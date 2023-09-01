@@ -354,19 +354,38 @@ input[type="date"] {
     color: #00122e;
     font-size: 1rem;
 }
-  
+
+.bottom-buttons {
+    
+}
+
 #convert-btn {
     padding: 0.4rem 1rem;
     border-radius: 0.5rem;
     border: 2px white;
-    background: linear-gradient(to right, #26b54c, #00a3fb);
+    background: #00a3fb;
+    color: white;
+    font-family: 'Montserrat';
+    font-weight: 700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 4px;
+    margin-right: auto;
+    margin-top: 0.75rem;
+}
+
+#copyButton {
+    padding: 0.4rem 1rem;
+    border-radius: 0.5rem;
+    border: 2px white;
+    background: #26b54c;
     color: white;
     font-family: 'Montserrat';
     font-weight: 700;
     font-size: 1.2rem;
     cursor: pointer;
     margin-left: auto;
-    margin-right: auto;
+    margin-right: 4px;
     margin-top: 0.75rem;
 }
 
@@ -375,6 +394,7 @@ input[type="date"] {
     font-weight: 400;
     font-size: 1.2rem;
     margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
     color: #00a3fb;
 }
 

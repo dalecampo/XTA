@@ -1,8 +1,9 @@
 import { track, provider, category, needsClipID } from "./trackingFormulas.js";
 
 //var xmlFileName = 'xmlFiles/' + 'OSTV 08-28-23 cleaned Dale test_1.xml';
-var xmlFileName = 'xmlFiles/' + 'Eye Candy 8-14-23.xml';
+var xmlFileName = 'xmlFiles/' + 'Example.xml';
 var csvData = [];
+let csvDataToCopy;
 var csvRowsCount = 0;
 let prevSegmentName = null;
 let prevMusicName = null;
@@ -49,6 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // When a file gets uploaded:
 function handleFileUpload(event) {
+    messageText.innerHTML = "";
     event.preventDefault();
     var fileUpload = document.getElementById('xmlFileUpload');
     var uploadLabel = document.getElementById('uploadLabel');
@@ -214,6 +216,7 @@ document.getElementById('convert-btn').addEventListener('click', function() {
     if (numberOfRowsInData > 1) {
         // Combine headers and data
         var csvString = headers + data;
+        csvDataToCopy = csvString;
 
         // Create a Blob with the CSV data
         var blob = new Blob([csvString], {type: 'text/csv;charset=utf-8;'});
@@ -241,6 +244,131 @@ document.getElementById('convert-btn').addEventListener('click', function() {
 
     // It's important to revoke the object URL after use to avoid memory leaks
     setTimeout(function() { URL.revokeObjectURL(url); }, 0);
+});
+
+
+
+
+// Get reference to the copy button
+var copyButton = document.getElementById("copyButton");
+
+// Add click event listener to the button
+copyButton.addEventListener("click", function() {
+    // Get the Channel dropdown value
+    var channel = document.getElementById('channel-dropdown').value;
+
+    // Get the Date selector value
+    var dateDropdown = document.getElementById('date');
+    var date = new Date(dateDropdown.value);
+    // Format the date in "m/d/yy" format in UTC
+    var formattedDate = (date.getUTCMonth() + 1) + "/" + date.getUTCDate() + "/" + (date.getUTCFullYear().toString().substr(-2));
+    
+    // Overwrite the Channel and Date values for all rows based on what the user selected.
+    csvData = csvData.map(function(row) {
+        row.channel = channel;
+        row.date = formattedDate;
+        return row;
+    });
+
+    // List of clipName values to omit
+    var omitClipNames = [
+        "ATM_Content Submit QR.mp4",
+        "ATM_Content Submit QR_Music 2.mp4",
+        "ATM_HouseAd_2023_V2.mp4",
+        "ATM_YouAreWatching.mp4",
+        "ATM_YouAreWatching_2.mp4",
+        "ATM_YouAreWatching_3.mp4",
+    ];
+
+    // Filter out rows in comps with duplicate clips and also rows whose clipName ends with .aep or .aegraphic
+    csvData = csvData.filter(function(row, index) {
+        // Check if the row has 'compName' and 'clipName' properties and they are strings
+        if (row.hasOwnProperty('compName') && typeof row.compName === 'string' &&
+            row.hasOwnProperty('clipName') && typeof row.clipName === 'string') {
+            // Trim whitespace and remove any surrounding quotes around the compName and clipName
+            var compName = row.compName.trim().replace(/^["']|["']$/g, '');
+            var clipName = row.clipName.trim().replace(/^["']|["']$/g, '');
+    
+            // Return false (filter out the row) if the clipName ends with ".aep" or is in the omit list
+            if (clipName.endsWith('.aep') || clipName.endsWith('.aegraphic') || omitClipNames.includes(clipName)) {
+                return false;
+            }
+    
+            // Check if the compName and clipName are found in any previous rows
+            var isDuplicate = false;
+            for (var i = 0; i < index; i++) {
+                var prevRow = csvData[i];
+                if (prevRow.hasOwnProperty('compName') && typeof prevRow.compName === 'string' &&
+                    prevRow.hasOwnProperty('clipName') && typeof prevRow.clipName === 'string') {
+                    var prevCompName = prevRow.compName.trim().replace(/^["']|["']$/g, '');
+                    var prevClipName = prevRow.clipName.trim().replace(/^["']|["']$/g, '');
+                    if (prevCompName === compName && prevClipName === clipName) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+            }
+    
+            // Return true (keep the row) if the compName and clipName are not found in previous rows
+            return !isDuplicate;
+        }
+    
+        // If the row doesn't have 'compName' and 'clipName' properties or they aren't strings, keep it in the array
+        return true;
+    });
+
+    // Get the headers (object keys)
+    var headers = "Seg\tComp Name\tClip Name\tClip URL\tMusic File Name\tChannel\tClip ID\tProvider\tCategory\tDate\n";
+    
+
+    // Convert the array of objects to CSV data
+    var data = csvData.map(obj => {
+        return Object.values(obj).map(val => {
+        // Replace undefined values with an empty string
+        if (typeof val === 'undefined') {
+            val = '';
+        }   
+        // Remove the outer set of quotation marks from the value if they exist
+        if (typeof val === 'string' && val.charAt(0) === '"' && val.charAt(val.length - 1) === '"') {
+            val = val.slice(1, -1);
+        }
+        // Add double quotes around the value
+        return `"${val}"`;
+        }).join('\t');
+    }).join('\n');
+
+    if (data) {
+        // Combine headers and data
+        var csvString = headers + data;
+        csvDataToCopy = csvString;
+
+        if (channel === "Select Channel") {
+            messageText.innerHTML = "Select Channel";
+        } else {
+            // Create a textarea element and set its value to the CSV data
+            var textarea = document.createElement("textarea");
+            textarea.value = csvDataToCopy;
+
+            // Append the textarea to the document body
+            document.body.appendChild(textarea);
+
+            // Select the text inside the textarea
+            textarea.select();
+
+            // Copy the selected text to the clipboard
+            document.execCommand("copy");
+
+            // Remove the textarea from the document body
+            document.body.removeChild(textarea);
+
+            // Alert the user that the data has been copied
+            messageText.innerHTML = "Copied CSV Data!";
+        }
+    } else if (!xml) {
+        messageText.innerHTML = "Upload XML";
+    } else {
+        messageText.innerHTML = "Error: Empty CSV";
+    }
 });
 
 
@@ -415,7 +543,7 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
         var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
         if (sequenceNameElement) {
             var sequenceName = sequenceNameElement.textContent;
-            console.log(`sequenceName: ${sequenceName}`);
+            //console.log(`sequenceName: ${sequenceName}`);
             //console.log(`startsWithATM: ${sequenceName.startsWith("ATM")}`);
             
             // This is the default:
@@ -595,8 +723,6 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                         let fileId = fileEl.getAttribute('id');
                         var clipFileName = fileEl.getElementsByTagName('name')[0]?.textContent;
 
-                        // WORK IN PROGRESS BELOW
-
                         // If the <file> element has no nested <name> element, find the element with the same id that does have it.
                         if (!clipFileName) {        
 
@@ -613,7 +739,6 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                                 console.log(`ERROR: <FILE> ELEMENT NOT FOUND`);
                             }
                         }
-                        // WORK IN PROGRESS ABOVE
 
                         //console.log(`clipFileName: ${clipFileName}`);
                         if (clipFileName) { 
