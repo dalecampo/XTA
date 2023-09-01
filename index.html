@@ -83,7 +83,13 @@
             <label for="date">Date Posting:</label>
             <input type="date" id="date" name="date">
         </div>
-        <button type="button" id="convert-btn">Convert XML to CSV</button>
+        <span>
+            <button type="button" id="copyButton">Copy CSV Data</button>
+            <div>
+                
+            </div>
+            <button type="button" id="convert-btn">Download CSV</button>
+        </span>
         <div id="message-text"></div>
         <div class="circle">
             <div class="instructions-icon-2">?</div>
@@ -91,7 +97,13 @@
         </div>
         <div class="overlay-2">
             <div class="instructions-2">
-                <h3>Using the CSV</h3>
+                <h3>Option 1: Copy/Paste CSV Data</h3>
+                <ol>
+                    <li>In VOD Content Tracking, go to your channel's tab.</li>
+                    <li>Use CMD+Shift+V to paste your copied tracking data.</li>
+                    <li>Fix "Add Manually" fields and remove rows as needed.</li>
+                </ol>
+                <h3>Option 2: Importing a CSV</h3>
                 <ol>
                     <li>In your channel dashboard, create a blank sheet/tab.</li>
                     <li>Go to File > Import and select your CSV.</li>
