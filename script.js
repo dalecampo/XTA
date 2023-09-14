@@ -9,6 +9,13 @@ let prevSegmentName = null;
 let prevMusicName = null;
 let xml;
 const messageText = document.getElementById("message-text");
+messageText.innerHTML = '';
+// Get the HTML element with id 'xmlHierarchy'. We'll append elements to xmlHierarchyDiv to display the hierarchy on the webpage.
+var xmlHierarchyDiv = document.getElementById('xmlHierarchy');
+
+
+// Store the value of the ATM Contributors CSV for cross-referencing during a Contributors Audit.
+
 
 //debugger;
 
@@ -50,7 +57,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // When a file gets uploaded:
 function handleFileUpload(event) {
-    messageText.innerHTML = "";
+    // Clear previous XML hierarchy
+    xmlHierarchyDiv.innerHTML = '';
+    csvData = [];
+    console.clear();
+
+    messageText.innerHTML = "Processing...";
+
     event.preventDefault();
     var fileUpload = document.getElementById('xmlFileUpload');
     var uploadLabel = document.getElementById('uploadLabel');
@@ -115,6 +128,7 @@ function loadXMLFile(file, callback) {
     };
     xhttp.open("GET", file, true);
     xhttp.send();
+    messageText.innerHTML = "Processing (Test)...";
 }
 
 
@@ -272,12 +286,24 @@ copyButton.addEventListener("click", function() {
 
     // List of clipName values to omit
     var omitClipNames = [
+        // House Ads
         "ATM_Content Submit QR.mp4",
         "ATM_Content Submit QR_Music 2.mp4",
         "ATM_HouseAd_2023_V2.mp4",
         "ATM_YouAreWatching.mp4",
         "ATM_YouAreWatching_2.mp4",
         "ATM_YouAreWatching_3.mp4",
+        // Bug Boxes
+        "ATM Bug (Right).png",
+        "ATM Bug (Left).png",
+        "ATM BUG_720_Lower Left.png",
+        "ATM BUG_720_Lower Right.png",
+        "ATM BUG_720_Top Left.png",
+        "ATM BUG_720_Top Right.png",
+        "ATM BUG_1080_Lower Left.png",
+        "ATM BUG_1080_Lower Right.png",
+        "ATM BUG_1080_Top Left.png",
+        "ATM BUG_1080_Top Right.png",
     ];
 
     // Filter out rows in comps with duplicate clips and also rows whose clipName ends with .aep or .aegraphic
@@ -377,9 +403,6 @@ copyButton.addEventListener("click", function() {
 
 // Show the visual hierarchy of the XML both on the webpage and in the browser's console.
 function displayHierarchy(xml) {
-    // Get the HTML element with id 'xmlHierarchy'. We'll append elements to xmlHierarchyDiv to display the hierarchy on the webpage.
-    var xmlHierarchyDiv = document.getElementById('xmlHierarchy');
-
     // Clear previous XML hierarchy
     xmlHierarchyDiv.innerHTML = '';
     csvData = [];
@@ -388,9 +411,11 @@ function displayHierarchy(xml) {
     var projectElement = xml.getElementsByTagName('project')[0];
     if (!projectElement) {
         console.error("Error: The XML file does not contain a <project> element.");
-        messageText.innerHTML = "XML Missing <Project> Element";
+        messageText.innerHTML = "XML Missing Project Element";
         return;
     }
+
+    messageText.innerHTML = "Processing...";
 
     // Start processing from the top-level bins within the project.
     var topLevelBins = projectElement.getElementsByTagName('children')[0]?.children;
@@ -423,6 +448,7 @@ function displayHierarchy(xml) {
     
     csvRowsCount = csvData.length;
     //console.log(csvRowsCount);
+    messageText.innerHTML = "";
 }
 
 
@@ -709,9 +735,12 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                 // Get all 'video' and 'audio' elements within the current media element.
                 var videoElements = mediaElements[j].getElementsByTagName('video');
                 var audioElements = mediaElements[j].getElementsByTagName('audio');
+
+                if (j === 0) {
+                    console.log(`^^^audioElements length: ${audioElements.length}`);
+                }
+
                 var musicFile = "";
-                
-                // Seg
                 let segmentName = null;
 
                 // Extract video file names, log them, and filter out any undefined values.
@@ -727,20 +756,19 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                         if (!clipFileName) {        
 
                             // Find the file element with the same id and a nested <name> element.
-                            var foundElement = xml.querySelector(`file[id="${fileId}"] name`);
+                            var videoFoundElement = xml.querySelector(`file[id="${fileId}"] name`);
                             
                             // If the matching element was found:
-                            if (foundElement) {
+                            if (videoFoundElement) {
                                 // Save the textContent of the name tag to fileName
-                                clipFileName = foundElement.textContent;
+                                clipFileName = videoFoundElement.textContent;
 
-                                //console.log(`Found ${fileId}: ${clipFileName}`);
+                                //console.log(`Found video with ${fileId}: ${clipFileName}`);
                             } else {
-                                console.log(`ERROR: <FILE> ELEMENT NOT FOUND`);
+                                console.log(`ERROR: VIDEO <FILE> ELEMENT NOT FOUND`);
                             }
                         }
 
-                        //console.log(`clipFileName: ${clipFileName}`);
                         if (clipFileName) { 
                             // Comp Name
                             let compName = null;
@@ -750,10 +778,9 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             segmentName = sequenceCheckbox.id.replace('checkbox-', '');
                             
                             if (!segmentName.startsWith("ATM")) {
-                                //segmentName = sequenceName;
                                 console.log("FOUND A SEGMENT THAT DID NOT START WITH ATM");
                                 compName = segmentName;
-                                segmentName = prevSegmentName; // use previous segment name
+                                segmentName = prevSegmentName;
                             }
 
                             // Provider
@@ -768,17 +795,47 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             // Clip URL
                             const clipURL = track(clipFileName, clipProvider, clipCategory);                                
                             
+                            // Create an empty array to store the music file names
+                            var uniqueMusicSet = new Set();
+                            var uniqueClipAudioSet = new Set();
+                            //var hasMusic = false;
+
                             // Repeat the process for audio file names.
                             [...audioElements].forEach(el => {
-                                var fileElements = el.getElementsByTagName('file');
-                                [...fileElements].forEach(fileEl => {
-                                    var musicFileName = fileEl.getElementsByTagName('name')[0]?.textContent;
-                                    if (musicFileName) { 
+                                var audioFileElements = el.getElementsByTagName('file');
+
+                                // Loop through all <file> elements in audioElements. Check if any are music files.
+                                [...audioFileElements].forEach(fileEl => {
+                                    let audioFileId = fileEl.getAttribute('id');
+                                    var audioFoundElement = xml.querySelector(`file[id="${audioFileId}"] name`);
+                                    var musicFileName = audioFoundElement.textContent;
+
+                                    if (musicFileName.endsWith(".mp3") || musicFileName.endsWith(".MP3") || musicFileName.endsWith(".wav") || musicFileName.endsWith(".WAV")) {
+                                        //hasMusic = true;
                                         audioNamesSet.add(musicFileName);
+                                        uniqueMusicSet.add(musicFileName);
                                         musicFile = musicFileName;
+                                    } else if (!musicFileName) {
+                                        // musicFileName will be false if there is none, so we'll output it as blank.
+                                        musicFile = "";
+                                    } else {
+                                        // Assume that the audio element was from a video's source audio.
+                                        uniqueClipAudioSet.add(musicFileName);
                                     }
                                 });
                             });
+                            
+                            if (uniqueClipAudioSet.has(clipFileName)) {
+                                musicFile = "Source Video";
+                            }
+                            
+                            // Convert the Set back to an array
+                            var listOfMusic = Array.from(uniqueMusicSet);
+
+                            // Set musicFile equal to listOfMusic joined by commas if it is not empty
+                            if (listOfMusic.length > 0) {
+                                musicFile = listOfMusic.join(", ");
+                            }
 
                             if (!musicFile) {
                                 musicFile = prevMusicName;
@@ -801,13 +858,11 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             };
 
                             csvData.push(row);
-                            //prevSegmentName = segmentName;
-                            // Log rows for console troubleshooting:
                             //console.log(row);
                         }
                         prevSegmentName = segmentName;
                         prevMusicName = musicFile;
-                    }); 
+                    });
                 });
                 console.log(`AUD: ${musicFile}`);
             }

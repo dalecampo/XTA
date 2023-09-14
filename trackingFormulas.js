@@ -27,6 +27,12 @@ export function track(filename, provider, category) {
     return "https://www.thecontentbible.com/record/" + filename.match(/(\d+)_ContentBible.mov/)[1];
   }
 
+  // Check if the provider is GoPro
+  if (provider === "GoPro") {
+    // Return the video URL
+    return "https://partner.gopro.com/#/media?per_page=20&search=" + filename + "&page=1";
+  }
+
   // Check if the provider is Newsflare
   if (provider === "Newsflare") {
     // Return the video URL
@@ -63,14 +69,18 @@ export function track(filename, provider, category) {
   // Check if the category is Instagram
   if (category === "Instagram") {
     let regex;
+
+    if (filename.indexOf(")_") === -1) {
+      return "FIX CLIP NAME";
+    }
+    // If the file name includes spaces, extract the value between ")" and the first space
+    // This covers cases where an IG post has several videos and each is indexed like " - #_IG.mp4"
     if (filename.includes(" ")) {
-      // Use this regex if the filename contains spaces
       regex = /\)_([^ ]*)/;
     } else {
-      // Use this regex if the filename does not contain spaces
+      // If the file name has no spaces, extract the value between ")_" and "_IG.mp4"
       regex = /\)\_(.*?)\_IG\.mp4/;
     }
-  
     const match = filename.match(regex);
     if (match) {
       return "https://www.instagram.com/p/" + match[1];
@@ -88,12 +98,20 @@ export function track(filename, provider, category) {
   if (category === "YouTube") {
     const regex = /_(.{11})_YT.mp4/;
     const match = filename.match(regex);
+
+    if (filename.indexOf(")_") === -1) {
+      return "FIX CLIP NAME";
+    }
     if (match) {
       const videoId = match[1];
       return "https://www.youtube.com/watch?v=" + videoId;
     } else {
       return null;
     }
+  }
+
+  else {
+    return "ADD CLIP URL MANUALLY";
   }
 }
 
@@ -120,7 +138,7 @@ export function provider(filename) {
     if (contributor === "NASA") {
       return "NASA";
     } else if (contributor === "FailArmy" || contributor === "Jukin" || contributor === "People Are Awesome" || contributor === "The Pet Collective" ) {
-      return "Jukin (comp)"
+      return "Jukin (clip)"
     } else {
       return "Contributor Content";
     }
@@ -140,6 +158,9 @@ export function provider(filename) {
   if (filename.indexOf("ContentBible") != -1) {
     return "CONTENTbible";
   }
+  if (filename.indexOf("GPB_Master") != -1) {
+    return "GoPro";
+  }
   if (filename.indexOf("mixkit") != -1) {
     return "Mixkit";
   }
@@ -152,13 +173,13 @@ export function provider(filename) {
   if (filename.indexOf("Newsflare") != -1) {
     return "Newsflare";
   }
-  if (filename.indexOf("pexels") != -1) {
+  if (filename.indexOf("pexels") != -1 || filename.indexOf("production_id_") != -1) {
     return "Pexels";
   }
   if (filename.indexOf("Storyful") != -1) {
     return "Storyful";
   }
-  if (filename.indexOf("UGC_perpetual") != -1) {
+  if (filename.indexOf("UGC_perpetual") != -1 || filename.indexOf("UGC_CONTEST") != -1) {
     return "UGC";
   }
   if (filename.slice(0, 2) == "VV") {
@@ -310,13 +331,30 @@ function username(filename) {
 
 
 
+/*
+// QUICK TEST
+const testFile = "(jimmysaysrelax)_BjkiH-7HUIK_IG.mp4";
 
+console.log("Test File: ");
+console.log(testFile);
+console.log("");
 
+console.log("Provider: ");
+console.log(provider(testFile));
+console.log("");
 
+console.log("Category: ");
+console.log(category(testFile, provider(testFile)));
+console.log("");
+
+console.log("Clip URL: ");
+console.log(track(testFile, provider(testFile), category(testFile, provider(testFile))));
+console.log("");
+*/
 
 /*
 
-//START OF TESTING - CONSTANTS DECLARATION
+//START OF MAIN TESTING - CONSTANTS DECLARATION
 
 const artgrid = "42674_waves_rush_to_rocky_shore_with_green_grass_and_fence_on_stormy_day_by_Jakob_Owens_Artgrid-HD_H264-HD.mp4";
 const artlist = "599442_Tornado, Road, Wind, Air_By_Ira_Belsky_Artlist_HD";
@@ -324,6 +362,7 @@ const contentbible = "Game of thrones fan builds a Covid Castle in his house_m17
 const instagram = "(louddoodle)_Ce66txEuTmW - 1_IG.mp4";
 const newsflare = "Newsflare-313848-french-bulldog-puppy-dressed-i.mp4";
 const pexels = "pexels-los-muertos-crew-8478021.mp4";
+const pexelsTwo = "production_id_5049368 (1080p) (1).mp4";
 const storyblocks = "close-up-on-sweet-macaroons-on-pink-background-delicious-desserts-SBV-332071933-HD.mov";
 const tiktok = "(stephcoach1234)_7127984644422700293_TT.mp4";
 const vimeo = "(OceanShutter)_Stay With Us - Part II - Stay Longer_212783769_VI.mp4";
