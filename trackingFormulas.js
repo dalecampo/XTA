@@ -53,6 +53,18 @@ export function track(filename, provider, category) {
     }
   }
 
+  if (provider === "Red Bull") {
+    const regex = /(MI\d+)/;
+    const match = filename.match(regex);
+
+    if (match) {
+      const vin = match[0];
+      return "https://www.redbullcontentpool.com/search?q=" + vin;
+    } else {
+      return null;
+    }
+}
+
   // Check if the provider is Storyblocks
   if (provider === "Storyblocks") {
     // Return the video URL
@@ -333,7 +345,7 @@ function username(filename) {
 
 /*
 // QUICK TEST
-const testFile = "(jimmysaysrelax)_BjkiH-7HUIK_IG.mp4";
+const testFile = "MI202106180013_h264_1080p.mp4";
 
 console.log("Test File: ");
 console.log(testFile);
