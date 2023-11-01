@@ -63,7 +63,7 @@ export function track(filename, provider, category) {
     } else {
       return null;
     }
-}
+  }
 
   // Check if the provider is Storyblocks
   if (provider === "Storyblocks") {
