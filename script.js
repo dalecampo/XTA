@@ -14,6 +14,14 @@ messageText.innerHTML = '';
 var xmlHierarchyDiv = document.getElementById('xmlHierarchy');
 
 
+let segmentStartingLetters = [
+    "ATM",
+    "CTV",
+    "HappyTV",
+    "HTV",
+    "SH"    
+];
+
 // Store the value of the ATM Contributors CSV for cross-referencing during a Contributors Audit.
 
 
@@ -573,7 +581,10 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
             //console.log(`startsWithATM: ${sequenceName.startsWith("ATM")}`);
             
             // This is the default:
-            return sequenceName.startsWith("ATM");
+            // return sequenceName.startsWith("ATM");
+
+            // Revised version 6/20/24 with a check for new segment starting text:
+            return segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix));
 
             // This is the test:
             //return sequenceName;
@@ -706,8 +717,8 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
         // Append this label to the sequence's <div> element.
         sequenceDiv.appendChild(sequenceLabel);
 
-        // If the sequence name starts with "ATM", add a specific class
-        if (sequenceName.startsWith("ATM")) {
+        // If the sequence name starts with an accepted initial text string (from the segmentStartingLetters array), add a specific class
+        if (segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix))) {
             seqText.classList.add('atm-sequence');
         }
 
@@ -719,8 +730,8 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
         // Append the sequence <div> to the parent element.
         parentElement.appendChild(sequenceDiv);
 
-        // Only output media file names for sequences whose name do NOT begin with "ATM".
-        if (!sequenceName.startsWith("ATM")) {
+        // If the sequence does NOT start with an accepted initial text string (from the segmentStartingLetters array), treat it as a comp instead of a segment (show its media files).
+        if (!segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix))) {
             // Store all <media> elements from the current sequence.
             var mediaElements = sequenceElement.getElementsByTagName('media');
 
@@ -777,8 +788,8 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             var sequenceCheckbox = parentElement.querySelector('.sequence-checkbox');
                             segmentName = sequenceCheckbox.id.replace('checkbox-', '');
                             
-                            if (!segmentName.startsWith("ATM")) {
-                                console.log("FOUND A SEGMENT THAT DID NOT START WITH ATM");
+                            if (!segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix))) {
+                                // console.log("Found a segment that did not start with an accepted initial text string (from the segmentStartingLetters array)");
                                 compName = segmentName;
                                 segmentName = prevSegmentName;
                             }
