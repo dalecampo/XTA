@@ -25,7 +25,7 @@ let segmentStartingLetters = [
 // Store the value of the ATM Contributors CSV for cross-referencing during a Contributors Audit.
 
 
-//debugger;
+// debugger;
 
 // The following test doesn't work with the Show Media Files button.
 // Uncomment this line to use xmlFileName for testing:
@@ -182,12 +182,56 @@ document.getElementById('convert-btn').addEventListener('click', function() {
 
     // List of clipName values to omit
     var omitClipNames = [
+        // Atmosphere House Ads
         "ATM_Content Submit QR.mp4",
         "ATM_Content Submit QR_Music 2.mp4",
         "ATM_HouseAd_2023_V2.mp4",
         "ATM_YouAreWatching.mp4",
         "ATM_YouAreWatching_2.mp4",
         "ATM_YouAreWatching_3.mp4",
+        
+        // From Justin Lescano
+        "Black Video",
+        "PhoneFrame.png",
+        "Logo_1080_B Viral_Left.png",
+        "Graphic",
+        "Humor Outro.mp4",
+        "Show Me The Funny Intro.mov",
+        "Redbull Graffiti.mp4",
+        "Daily scroll BG.mp4",
+        "Daily Scroll Intro.mov",
+        "Chive 2.0 Shape BG.mp4",
+        "DDOA TRANSITION.mov",
+        "DDOA INTRO.mp4",
+
+        // 1080p Clip Provider Logos
+        "Logo_1080_B Viral_Left.png",
+        "Logo_1080_B Viral_Right.png",
+        "Logo_1080_Caters Clips_Left.png",
+        "Logo_1080_Caters Clips_Right.png",
+        "Logo_1080_Collab Clips_Left.png",
+        "Logo_1080_Collab Clips_Right.png",
+        "Logo_1080_FAILARMY_Left.png",
+        "Logo_1080_FAILARMY_Right.png",
+        "Logo_1080_GoPro_Left.png",
+        "Logo_1080_GoPro_Right.png",
+        "Logo_1080_Jukin_Left.png",
+        "Logo_1080_Jukin_Right.png",
+        "Logo_1080_LPE360_Left.png",
+        "Logo_1080_LPE360_Right.png",
+        "Logo_1080_People Are Awesome V1_Left.png",
+        "Logo_1080_People Are Awesome V1_Right.png",
+        "Logo_1080_People Are Awesome V2_Left.png",
+        "Logo_1080_People Are Awesome V2_Right.png",
+        "Logo_1080_Quattro (5sec Fade)_Left.mov",
+        "Logo_1080_Quattro_Left.png",
+        "Logo_1080_Quattro_Right.png",
+        "Logo_1080_The Pet Collective V1_Left.png",
+        "Logo_1080_The Pet Collective V1_Right.png",    ,
+        "Logo_1080_The Pet Collective V2_Left.png",
+        "Logo_1080_The Pet Collective V2_Right.png",
+        "Logo_1080_TIH_Left.png",
+        "Logo_1080_TIH_Right.png"
     ];
 
     // Filter out rows in comps with duplicate clips and also rows whose clipName ends with .aep or .aegraphic
@@ -538,28 +582,28 @@ function processBin(binElement, parentElement) {
 
     // Append the bin's <div> element to the parent element.
     parentElement.appendChild(binDiv);
-  
+
     // Get all direct child <bin> elements from within the current <bin> element.
     var childBinElements = binElement.getElementsByTagName('children')[0]?.children;
-  
+
     // If there are any child bins, process them.
     if (childBinElements) {
-      for (var i = 0; i < childBinElements.length; i++) {
-        if (childBinElements[i].tagName === 'bin') {
-          processBin(childBinElements[i], binDiv);
+        for (var i = 0; i < childBinElements.length; i++) {
+            if (childBinElements[i].tagName === 'bin') {
+                processBin(childBinElements[i], binDiv);
+            }
         }
-      }
     }
-  
+
     // Get all direct child <sequence> elements from within the current <bin> element.
     var sequenceElements = binElement.getElementsByTagName('children')[0]?.children;
-  
+
     // Create a Set to keep track of the sequences that have already been displayed.
     var displayedSequences = new Set();
-  
+
     // Call the function to display the hierarchy of sequences and nested media files.
     if (sequenceElements) {
-      displaySequenceHierarchy(sequenceElements, binDiv, 1, displayedSequences);
+        displaySequenceHierarchy(sequenceElements, binDiv, 1, displayedSequences);
     }
 }
 
@@ -567,7 +611,7 @@ function processBin(binElement, parentElement) {
 
 
 
-// Find segments that start with "ATM" and initiate the processing for those in alphabetical order.
+// Find segments that start with a string from segmentStartingLetters and initiate the processing for those in alphabetical order.
 function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, displayedSequences) {
     // Convert NodeList or HTMLCollection to an array
     var sequenceArray = Array.prototype.slice.call(sequenceElements);
@@ -580,11 +624,14 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
             //console.log(`sequenceName: ${sequenceName}`);
             //console.log(`startsWithATM: ${sequenceName.startsWith("ATM")}`);
             
-            // This is the default:
+            // This was the default for "ATM" segments/sequences:
             // return sequenceName.startsWith("ATM");
 
             // Revised version 6/20/24 with a check for new segment starting text:
-            return segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix));
+            var segmentsThatStartWithSegmentLetters = segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix));
+            console.log(`segmentsThatStartWithSegmentLetters: ${segmentsThatStartWithSegmentLetters}`);
+
+            return segmentsThatStartWithSegmentLetters;
 
             // This is the test:
             //return sequenceName;
@@ -637,7 +684,7 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
             // Save the textContent of the name tag to sequenceName
             sequenceName = foundElement.textContent;
 
-            console.log(`Found ${sequenceId}: ${sequenceName}`);
+            // console.log(`Found ${sequenceId}: ${sequenceName}`);
         } else {
             console.log(`ERROR: SEQUENCE NOT FOUND`);
         }
@@ -646,7 +693,7 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
         sequenceName = sequenceNameElement.textContent;
     }
 
-    console.log(`SEQ: ${sequenceName}`);
+    console.log(`\n\n\nSEQ: ${sequenceName}`);
     console.log(`SEQ ID: ${sequenceId}`);    
 
     // If this sequence has not already been displayed...
@@ -782,16 +829,24 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
 
                         if (clipFileName) { 
                             // Comp Name
-                            let compName = null;
-                            compName = sequenceName;
+                            let compName = sequenceName;
+                            // console.log(`compName: ${compName}`);
 
                             var sequenceCheckbox = parentElement.querySelector('.sequence-checkbox');
                             segmentName = sequenceCheckbox.id.replace('checkbox-', '');
+                            // console.log(`SEGMENT NAME: ${segmentName}`);
                             
-                            if (!segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix))) {
-                                // console.log("Found a segment that did not start with an accepted initial text string (from the segmentStartingLetters array)");
+                            // If the sequence does not start with an approved string from segmentStartingLetters:
+                            // Assume that the sequence is a comp, not a segment.
+                            if (!segmentStartingLetters.some(prefix => segmentName.startsWith(prefix))) {
+                                // Assume it's a nested comp, so segmentName is actually a comp name.
                                 compName = segmentName;
-                                segmentName = prevSegmentName;
+                                // console.log(`compName is now: ${compName}`);
+                                // Because we assume it's a nested comp, its segment name should match the previous row's segment name.
+                                if (prevSegmentName !== null) {
+                                    segmentName = prevSegmentName;
+                                    // console.log(`segmentName is now: ${segmentName}`);
+                                }
                             }
 
                             // Provider
@@ -872,6 +927,7 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             //console.log(row);
                         }
                         prevSegmentName = segmentName;
+                        // console.log(`prevSegmentName is now set to: ${prevSegmentName}`);
                         prevMusicName = musicFile;
                     });
                 });
