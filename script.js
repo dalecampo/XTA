@@ -1,19 +1,18 @@
 import { track, provider, category, needsClipID } from "./trackingFormulas.js";
 
-//var xmlFileName = 'xmlFiles/' + 'OSTV 08-28-23 cleaned Dale test_1.xml';
-var xmlFileName = 'xmlFiles/' + 'Example.xml';
-var csvData = [];
+let csvData = [];
 let csvDataToCopy;
-var csvRowsCount = 0;
+let csvRowsCount;
 let prevSegmentName = null;
 let prevMusicName = null;
 let xml;
+
+// We'll append elements to xmlHierarchyDiv to display the hierarchy on the webpage.
+let xmlHierarchyDiv = document.getElementById('xmlHierarchy');
 const messageText = document.getElementById("message-text");
 messageText.innerHTML = '';
-// Get the HTML element with id 'xmlHierarchy'. We'll append elements to xmlHierarchyDiv to display the hierarchy on the webpage.
-var xmlHierarchyDiv = document.getElementById('xmlHierarchy');
 
-
+// Sequences with thess prefixes will be treated as segments:
 let segmentStartingLetters = [
     "ATM",
     "CTV",
@@ -22,20 +21,11 @@ let segmentStartingLetters = [
     "SH"    
 ];
 
-// Store the value of the ATM Contributors CSV for cross-referencing during a Contributors Audit.
-
-
-// debugger;
-
-// The following test doesn't work with the Show Media Files button.
-// Uncomment this line to use xmlFileName for testing:
-//loadXMLFile(xmlFileName, xml => { displayHierarchy(xml); console.log(csvData); });
 
 
 
 
-
-// Create the click or drag & drop file upload area behavior:
+// File uploads (click or drag/drop uploads)
 document.addEventListener('DOMContentLoaded', function () {
     var fileUpload = document.getElementById('xmlFileUpload');
     var dropArea = document.querySelector('.file-upload');
@@ -63,19 +53,23 @@ document.addEventListener('DOMContentLoaded', function () {
     fileUpload.addEventListener('change', handleFileUpload);
 });
 
+
+
+
+
 // When a file gets uploaded:
 function handleFileUpload(event) {
     // Clear previous XML hierarchy
     xmlHierarchyDiv.innerHTML = '';
     csvData = [];
     console.clear();
-
     messageText.innerHTML = "Processing...";
-
     event.preventDefault();
+
     var fileUpload = document.getElementById('xmlFileUpload');
     var uploadLabel = document.getElementById('uploadLabel');
     var dropArea = document.querySelector('.file-upload');
+
     dropArea.classList.remove('dragover');
     fileUpload.files = event.dataTransfer ? event.dataTransfer.files : fileUpload.files;
     var file = fileUpload.files.item(0);
@@ -105,17 +99,16 @@ function handleFileUpload(event) {
 document.querySelector('.instructions-icon-1').addEventListener('click', function() {
     document.querySelector('.overlay-1').style.display = 'block';
 });
-  
+
 document.querySelector('.overlay-1').addEventListener('click', function() {
     document.querySelector('.overlay-1').style.display = 'none';
 });
-
 
 // Event listener for the "How To Use The CSV" Instructions area:
 document.querySelector('.instructions-icon-2').addEventListener('click', function() {
     document.querySelector('.overlay-2').style.display = 'block';
 });
-  
+
 document.querySelector('.overlay-2').addEventListener('click', function() {
     document.querySelector('.overlay-2').style.display = 'none';
 });
@@ -150,12 +143,12 @@ var mediaCheckbox = document.getElementById('showMediaFilesCheckbox');
 
 // Handle its change event.
 mediaCheckbox.addEventListener('change', function() {
-   showMediaFiles = this.checked;
-   console.log(`showMediaFiles: ${showMediaFiles}`);
-   // Clear the current display.
-   document.getElementById("xmlHierarchy").innerHTML = "";
-   // Reload and redisplay the XML hierarchy.
-   handleFileUpload(event);
+    showMediaFiles = this.checked;
+    console.log(`showMediaFiles: ${showMediaFiles}`);
+    // Clear the current display.
+    document.getElementById("xmlHierarchy").innerHTML = "";
+    // Reload and redisplay the XML hierarchy.
+    handleFileUpload(event);
 });
 
 
@@ -315,7 +308,8 @@ document.getElementById('convert-btn').addEventListener('click', function() {
 
 
 
-// Get reference to the copy button
+
+// Get reference to the Copy button
 var copyButton = document.getElementById("copyButton");
 
 // Add click event listener to the button
@@ -622,19 +616,12 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
         if (sequenceNameElement) {
             var sequenceName = sequenceNameElement.textContent;
             //console.log(`sequenceName: ${sequenceName}`);
-            //console.log(`startsWithATM: ${sequenceName.startsWith("ATM")}`);
-            
-            // This was the default for "ATM" segments/sequences:
-            // return sequenceName.startsWith("ATM");
 
             // Revised version 6/20/24 with a check for new segment starting text:
             var segmentsThatStartWithSegmentLetters = segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix));
             console.log(`segmentsThatStartWithSegmentLetters: ${segmentsThatStartWithSegmentLetters}`);
 
             return segmentsThatStartWithSegmentLetters;
-
-            // This is the test:
-            //return sequenceName;
         }
         return false;
     });
@@ -663,8 +650,6 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
 
 // Process comps within ATM segments.
 function processSequence(sequenceElement, parentElement, indentLevel, displayedSequences) {
-
-
     // Get the 'name' element from the current sequence
     var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
     // Get the sequence id
@@ -820,7 +805,6 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             if (videoFoundElement) {
                                 // Save the textContent of the name tag to fileName
                                 clipFileName = videoFoundElement.textContent;
-
                                 //console.log(`Found video with ${fileId}: ${clipFileName}`);
                             } else {
                                 console.log(`ERROR: VIDEO <FILE> ELEMENT NOT FOUND`);
@@ -828,7 +812,6 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                         }
 
                         if (clipFileName) { 
-                            // Comp Name
                             let compName = sequenceName;
                             // console.log(`compName: ${compName}`);
 
