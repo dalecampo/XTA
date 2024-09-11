@@ -18,7 +18,8 @@ let segmentStartingLetters = [
     "CTV",
     "HappyTV",
     "HTV",
-    "SH"    
+    "SH",
+    "Social"    
 ];
 
 
