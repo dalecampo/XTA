@@ -15,6 +15,7 @@ messageText.innerHTML = '';
 // Sequences with thess prefixes will be treated as segments:
 let segmentStartingLetters = [
     "ATM",
+    "ATMFOOD",
     "CTV",
     "HappyTV",
     "HTV",
