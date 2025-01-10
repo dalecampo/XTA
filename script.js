@@ -17,7 +17,7 @@ let segmentStartingLetters = [
     "ATM",
     "ATMFOOD",
     "Cheeky",
-    "Chive",
+    "CHIVE",
     "CTV",
     "HappyTV",
     "HTV",
