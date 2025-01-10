@@ -16,6 +16,8 @@ messageText.innerHTML = '';
 let segmentStartingLetters = [
     "ATM",
     "ATMFOOD",
+    "Cheeky",
+    "Chive",
     "CTV",
     "HappyTV",
     "HTV",
