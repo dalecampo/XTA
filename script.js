@@ -14,15 +14,44 @@ messageText.innerHTML = '';
 
 // Sequences with thess prefixes will be treated as segments:
 let segmentStartingLetters = [
+    "AFV",
     "ATM",
     "ATMFOOD",
+    "ATMFood",
+    "BULL",
     "Cheeky",
     "CHIVE",
+    "CHIVETV",
     "CTV",
+    "ESC",
+    "ESCAPE",
+    "ESCAPETV",
+    "FOOD",
+    "HAP",
+    "HAPPY",
+    "HAPPYTV",
     "HappyTV",
     "HTV",
+    "NOSTALGIA",
+    "NOSTALGIATV",
+    "NosTV",
+    "PAWS",
+    "PAWSTV",
+    "RBTV",
+    "RED",
+    "REDBULL",
+    "REDBULLTV",
     "SH",
-    "Social"    
+    "SHTV",
+    "Social",
+    "SUPER",
+    "SUPERHUMAN",
+    "SUPERHUMANTV",
+    "THROT",
+    "THROTTLE",
+    "THROTTLETV",
+    "ZONE",
+    "ZONETV"
 ];
 
 
