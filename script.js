@@ -47,6 +47,7 @@ let segmentStartingLetters = [
     "SUPER",
     "SUPERHUMAN",
     "SUPERHUMANTV",
+    "TATTOO",
     "THROT",
     "THROTTLE",
     "THROTTLETV",
