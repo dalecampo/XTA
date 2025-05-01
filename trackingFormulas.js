@@ -31,6 +31,18 @@ export function track(filename, provider, category) {
     return "https://partner.gopro.com/#/media?per_page=20&search=" + filename + "&page=1";
   }
 
+  if (provider === "Motion Array") {
+    const regex = /_(original|fhd)_([0-9]+)\.(mp4|mov)$/;
+    const match = filename.match(regex);
+
+    if (match) {
+      const vin = match[0];
+      return "https://motionarray.com/browse/stock-video/?q=" + vin;
+    } else {
+      return null;
+    }
+  }
+
   // Check if the provider is Newsflare
   if (provider === "Newsflare") {
     // Return the video URL
@@ -165,6 +177,9 @@ export function provider(filename) {
   if (filename.indexOf("mixkit") != -1) {
     return "Mixkit";
   }
+  if (/_(original|fhd)_([0-9]+)\.(mp4|mov)$/.test(filename)) {
+    return "Motion Array";
+  }
   if (/^MI[0-9]+/.test(filename)) {
     return "Red Bull";
   }
@@ -231,6 +246,8 @@ export function category(filename, provider) {
       return "Paid License";
     case "Mixkit":
       return "Free Stock Footage";
+    case "Motion Array":
+        return "Paid Stock Footage";
     case "Newsflare":
       return "Paid License";
     case "NOAA":
