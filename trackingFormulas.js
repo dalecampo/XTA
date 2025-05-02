@@ -34,14 +34,14 @@ export function track(filename, provider, category) {
   if (provider === "Motion Array") {
     const regex = /_(original|fhd)_([0-9]+)\.(mp4|mov)$/;
     const match = filename.match(regex);
-
+  
     if (match) {
-      const vin = match[0];
-      return "https://motionarray.com/browse/stock-video/?q=" + vin;
+      const id = match[2]; // This is the numeric ID
+      return "https://motionarray.com/browse/stock-video/?q=" + id;
     } else {
       return null;
     }
-  }
+  }  
 
   // Check if the provider is Newsflare
   if (provider === "Newsflare") {
