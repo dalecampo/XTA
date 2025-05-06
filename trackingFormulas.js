@@ -19,6 +19,19 @@ export function track(filename, provider, category) {
     return "https://artlist.io/stock-footage/clip/description/" + filename.split("_")[0];
   }
 
+  // Check if the provider is Caters
+  if (provider === "Caters") {
+    const regex = /_(\d+)\.mp4$/;
+    const match = filename.match(regex);
+  
+    if (match) {
+      const id = match[1];
+      return "https://clips.catersnews.com/#/clip/" + id;
+    } else {
+      return null;
+    }
+  }  
+
   // Check if the provider is ContentBible
   if (provider === "CONTENTbible") {
     // Return the video URL
@@ -31,6 +44,7 @@ export function track(filename, provider, category) {
     return "https://partner.gopro.com/#/media?per_page=20&search=" + filename + "&page=1";
   }
 
+  // Check if the provider is Motion Array
   if (provider === "Motion Array") {
     const regex = /_(original|fhd)_([0-9]+)\.(mp4|mov)$/;
     const match = filename.match(regex);
@@ -167,6 +181,9 @@ export function provider(filename) {
   }
   if (filename.indexOf("Artgrid") != -1) {
     return "Artgrid";
+  }
+  if (filename.split("_")[0] == "CATERS") {
+    return "Caters";
   }
   if (filename.indexOf("ContentBible") != -1) {
     return "CONTENTbible";
