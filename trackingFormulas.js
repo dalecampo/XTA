@@ -46,16 +46,21 @@ export function track(filename, provider, category) {
 
   // Check if the provider is Motion Array
   if (provider === "Motion Array") {
-    const regex = /_(original|fhd)_([0-9]+)\.(mp4|mov)$/;
-    const match = filename.match(regex);
-  
+    const regex1 = /_(original|fhd)_([0-9]+)\.(mp4|mov)$/;
+    const regex2 = /_(original|fhd)_([0-9]+)_[0-9]+\.(mp4|mov)$/;
+    let match = filename.match(regex1);
+
+    if (!match) {
+      match = filename.match(regex2);
+    }
+
     if (match) {
-      const id = match[2]; // This is the numeric ID
+      const id = match[2]; // Extract the first numeric ID
       return "https://motionarray.com/browse/stock-video/?q=" + id;
     } else {
       return null;
     }
-  }  
+  }
 
   // Check if the provider is Newsflare
   if (provider === "Newsflare") {
@@ -195,6 +200,9 @@ export function provider(filename) {
     return "Mixkit";
   }
   if (/_(original|fhd)_([0-9]+)\.(mp4|mov)$/.test(filename)) {
+    return "Motion Array";
+  }
+  if (/_(original|fhd)_[0-9]+_[0-9]+\.(mp4|mov)$/.test(filename)) {
     return "Motion Array";
   }
   if (/^MI[0-9]+/.test(filename)) {
