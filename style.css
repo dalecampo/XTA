@@ -2,7 +2,7 @@ html {
     background: linear-gradient(to bottom, #00122e, #000814);
     min-height: 100vh;
 }
-  
+
 body {
     font-family: 'Montserrat', sans-serif;
     font-weight: 400;
@@ -24,6 +24,19 @@ img {
     margin: auto;
 }
 
+#googleSignInButton {
+    text-align: center;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+}
+
+#main-content {
+    display: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: visibility 0.5s, opacity 0.5s;
+}
 
 /* Instructions Icon and Text */
 
@@ -280,7 +293,7 @@ form {
     align-items: center;
     margin-left: auto;
     margin-right: auto;
-    max-width: 450px;
+    max-width: 750px;
 }
 
 input[type="text"] {
@@ -319,7 +332,7 @@ label {
     font-size: 1.2rem;
     font-weight: 700;
 }
-  
+
 /* Upload XML Button */
 label[for="xml-file"] {
     display: center;
@@ -338,7 +351,7 @@ label[for="xml-file"] {
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
-  
+
 label[for="xml-file"]:hover {
     background-color: #26b54c;
     color: white;
@@ -348,18 +361,33 @@ input[type="date"] {
     padding: 0.5rem;
     border-radius: 0.5rem;
     border: none;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     margin-left: 0.5rem;
     font-family: Montserrat;
     color: #00122e;
     font-size: 1rem;
 }
 
-#convert-btn {
+#copy-cells-btn {
     padding: 0.4rem 1rem;
     border-radius: 0.5rem;
     border: 2px white;
-    background: #00a3fb;
+    background: linear-gradient(135deg, #1c9800, #9bc45a);
+    color: white;
+    font-family: 'Montserrat';
+    font-weight: 700;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    margin-right: 4px;
+    margin-top: 0.75rem;
+}
+
+#download-csv-btn {
+    padding: 0.4rem 1rem;
+    border-radius: 0.5rem;
+    border: 2px white;
+    background: linear-gradient(135deg, #18508c, #00a3fb);
     color: white;
     font-family: 'Montserrat';
     font-weight: 700;
@@ -370,19 +398,28 @@ input[type="date"] {
     margin-top: 0.75rem;
 }
 
-#copyButton {
+#upload-airtable-btn {
     padding: 0.4rem 1rem;
     border-radius: 0.5rem;
     border: 2px white;
-    background: #26b54c;
+    background: linear-gradient(135deg, #f34f19, #ffad03);
     color: white;
     font-family: 'Montserrat';
     font-weight: 700;
     font-size: 1.2rem;
     cursor: pointer;
-    margin-left: auto;
-    margin-right: 4px;
+    margin-left: 4px;
+    margin-right: auto;
     margin-top: 0.75rem;
+}
+
+#upload-airtable-btn:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.bottom-buttons {
+    margin: auto;
 }
 
 #message-text {

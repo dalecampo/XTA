@@ -2,15 +2,127 @@ import { track, provider, category, needsClipID } from "./trackingFormulas.js";
 
 let csvData = [];
 let csvDataToCopy;
-let csvRowsCount;
 let prevSegmentName = null;
 let prevMusicName = null;
 let xml;
+let showMediaFiles = false; // When set to true, media files become visible on the webpage.
+
+let adminMode = true;
+let airtableBases = [];
+let hasSuccessfullyUploaded = false; // NEW: Tracks if a successful upload has occurred this session
 
 // We'll append elements to xmlHierarchyDiv to display the hierarchy on the webpage.
 let xmlHierarchyDiv = document.getElementById('xmlHierarchy');
-const messageText = document.getElementById("message-text");
+let messageText = document.getElementById("message-text");
 messageText.innerHTML = '';
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+let googleClientId;
+const herokuApiBaseUrl = 'https://atmosphere-xta-f0c50c5d2111.herokuapp.com'; // Heroku app URL
+
+///////////////////////////
+////// GOOGLE LOGIN ///////
+///////////////////////////
+
+function initGoogleIdentityServices() {
+    if (!googleClientId) {
+        console.error("🔴 Google Client ID is not available. Cannot initialize Google Identity Services.");
+        return;
+    }
+    if (adminMode) {
+        console.log("🚀 Initializing Google Identity Services with Client ID:", googleClientId);
+    }
+    try {
+        google.accounts.id.initialize({
+            client_id: googleClientId,
+            callback: handleGoogleSignInResponse, // This function executes after successful Google login
+            auto_select: true
+        });
+        google.accounts.id.renderButton(
+            document.getElementById("googleSignInButton"),
+            { theme: "outline", size: "large" }
+        );
+        google.accounts.id.prompt();
+
+        if (adminMode) {
+            console.log("✅ Google Sign-In services initialized and button rendered.");
+        }
+    } catch (error) {
+        console.error("🔴 Error initializing Google Identity Services:", error);
+    }
+}
+
+// Callback function after Google Sign-In
+function handleGoogleSignInResponse(response) {
+    updateUIAfterSignInVisuals();
+}
+
+function updateUIAfterSignInVisuals() {
+    const signInButton = document.getElementById('googleSignInButton');
+    const mainContent = document.getElementById('main-content');
+    
+    signInButton.style.display = 'none';
+
+    setTimeout(() => {
+        mainContent.style.opacity = 1;
+        mainContent.style.visibility = 'visible';
+        mainContent.style.display = 'block';
+    }, 250)
+}
+
+/////////////////////////////////
+////// APP CONFIG & INIT ////////
+/////////////////////////////////
+
+async function fetchConfigAndInitializeApp() {
+    if (adminMode) {
+        console.log('🚀 Attempting to fetch app config from Heroku...');
+    }
+
+    try {
+        const response = await fetch(`${herokuApiBaseUrl}/api/app-config`);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to fetch app config: ${response.status} - ${errorText}`);
+        }
+
+        const clientConfig = await response.json();
+        if (adminMode) {
+            console.log('✅ App Config Received from Heroku:', clientConfig);
+        }
+
+        // Access the specific values and use them
+        if (clientConfig.googleClientId) { // Ensure this matches the key sent by your backend
+            googleClientId = clientConfig.googleClientId;
+            initGoogleIdentityServices(); // Initialize Google Sign-In
+        } else {
+            console.error('🔴 GOOGLE_CLIENT_ID not found in the response from /api/app-config. Expected format: {"googleClientId": "your-id"}');
+        }
+
+        if (clientConfig.airtableBases && Array.isArray(clientConfig.airtableBases)) {
+            airtableBases = clientConfig.airtableBases; // Store the list of {name, id} objects
+
+            if (adminMode) console.log('🔑 Airtable Bases (name/id pairs) loaded from backend:', airtableBases);
+
+            setupChannelDropdownListener(); // Update channel dropdown listener now that we have the bases
+        } else {
+            console.warn('⚠️ Airtable Bases not found or not in correct format in config.');
+        }
+
+    } catch (error) {
+        console.error('🔴 Error fetching app configuration:', error);
+    }
+}
+
+window.onload = fetchConfigAndInitializeApp;
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////
+/////// REFERENCE ////////
+//////////////////////////
 
 // Sequences with thess prefixes will be treated as segments:
 let segmentStartingLetters = [
@@ -57,9 +169,65 @@ let segmentStartingLetters = [
     "ZONETV"
 ];
 
+// List of clipName values to omit
+let omitClipNames = [
+    // Atmosphere House Ads
+    "ATM_Content Submit QR.mp4",
+    "ATM_Content Submit QR_Music 2.mp4",
+    "ATM_HouseAd_2023_V2.mp4",
+    "ATM_YouAreWatching.mp4",
+    "ATM_YouAreWatching_2.mp4",
+    "ATM_YouAreWatching_3.mp4",
+    
+    // From Justin Lescano
+    "Black Video",
+    "PhoneFrame.png",
+    "Logo_1080_B Viral_Left.png",
+    "Graphic",
+    "Humor Outro.mp4",
+    "Show Me The Funny Intro.mov",
+    "Redbull Graffiti.mp4",
+    "Daily scroll BG.mp4",
+    "Daily Scroll Intro.mov",
+    "Chive 2.0 Shape BG.mp4",
+    "DDOA TRANSITION.mov",
+    "DDOA INTRO.mp4",
 
+    // 1080p Clip Provider Logos
+    "Logo_1080_B Viral_Left.png",
+    "Logo_1080_B Viral_Right.png",
+    "Logo_1080_Caters Clips_Left.png",
+    "Logo_1080_Caters Clips_Right.png",
+    "Logo_1080_Collab Clips_Left.png",
+    "Logo_1080_Collab Clips_Right.png",
+    "Logo_1080_FAILARMY_Left.png",
+    "Logo_1080_FAILARMY_Right.png",
+    "Logo_1080_GoPro_Left.png",
+    "Logo_1080_GoPro_Right.png",
+    "Logo_1080_Jukin_Left.png",
+    "Logo_1080_Jukin_Right.png",
+    "Logo_1080_LPE360_Left.png",
+    "Logo_1080_LPE360_Right.png",
+    "Logo_1080_People Are Awesome V1_Left.png",
+    "Logo_1080_People Are Awesome V1_Right.png",
+    "Logo_1080_People Are Awesome V2_Left.png",
+    "Logo_1080_People Are Awesome V2_Right.png",
+    "Logo_1080_Quattro (5sec Fade)_Left.mov",
+    "Logo_1080_Quattro_Left.png",
+    "Logo_1080_Quattro_Right.png",
+    "Logo_1080_The Pet Collective V1_Left.png",
+    "Logo_1080_The Pet Collective V1_Right.png",    ,
+    "Logo_1080_The Pet Collective V2_Left.png",
+    "Logo_1080_The Pet Collective V2_Right.png",
+    "Logo_1080_TIH_Left.png",
+    "Logo_1080_TIH_Right.png"
+];
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////
+////// FILE UPLOAD ///////
+//////////////////////////
 
 // File uploads (click or drag/drop uploads)
 document.addEventListener('DOMContentLoaded', function () {
@@ -89,10 +257,6 @@ document.addEventListener('DOMContentLoaded', function () {
     fileUpload.addEventListener('change', handleFileUpload);
 });
 
-
-
-
-
 // When a file gets uploaded:
 function handleFileUpload(event) {
     // Clear previous XML hierarchy
@@ -118,7 +282,9 @@ function handleFileUpload(event) {
             var parser = new DOMParser();
             xml = parser.parseFromString(xmlString, "application/xml");
             displayHierarchy(xml);
-            console.log(csvData);
+            if (adminMode) {
+                console.log(csvData);    
+            }
         }
         reader.readAsText(file);
     } else {
@@ -127,9 +293,11 @@ function handleFileUpload(event) {
     }
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+//////////////////////////
+/// POPUP INSTRUCTIONS ///
+//////////////////////////
 
 // Event listener for the "How to Get Started" Instructions area:
 document.querySelector('.instructions-icon-1').addEventListener('click', function() {
@@ -149,58 +317,33 @@ document.querySelector('.overlay-2').addEventListener('click', function() {
     document.querySelector('.overlay-2').style.display = 'none';
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////
+/////// SHOW MEDIA ///////
+//////////////////////////
 
-
-
-// Load the XML file.
-function loadXMLFile(file, callback) {
-    var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-            var parser = new DOMParser();
-            xml = parser.parseFromString(this.responseText, "application/xml");
-            callback(xml);
-        }
-    };
-    xhttp.open("GET", file, true);
-    xhttp.send();
-    messageText.innerHTML = "Processing (Test)...";
-}
-
-
-
-
-
-var showMediaFiles = false; // When set to true, media files become visible on the webpage.
-
-// Get the Show Media Files checkbox element.
 var mediaCheckbox = document.getElementById('showMediaFilesCheckbox');
 
 // Handle its change event.
 mediaCheckbox.addEventListener('change', function() {
     showMediaFiles = this.checked;
-    console.log(`showMediaFiles: ${showMediaFiles}`);
-    // Clear the current display.
-    document.getElementById("xmlHierarchy").innerHTML = "";
-    // Reload and redisplay the XML hierarchy.
-    handleFileUpload(event);
+    document.getElementById("xmlHierarchy").innerHTML = ""; // Clear the current display.
+    handleFileUpload(event); // Reload and redisplay the XML hierarchy.
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+//////////////////////////
+////// DOWNLOAD CSV //////
+//////////////////////////
 
 // Execute when the Convert XML to CSV button gets clicked:
-document.getElementById('convert-btn').addEventListener('click', function() {
-    // Get the Channel dropdown value
-    var channel = document.getElementById('channel-dropdown').value;
-
-    // Get the Date selector value
-    var dateDropdown = document.getElementById('date');
+document.getElementById('download-csv-btn').addEventListener('click', function() {
+    var channel = document.getElementById('channel-dropdown').value; // Get the Channel dropdown value
+    var dateDropdown = document.getElementById('date'); // Get the Date selector value
     var date = new Date(dateDropdown.value);
-    // Format the date in "m/d/yy" format in UTC
-    var formattedDate = (date.getUTCMonth() + 1) + "/" + date.getUTCDate() + "/" + (date.getUTCFullYear().toString().substr(-2));
+    var formattedDate = (date.getUTCMonth() + 1) + "/" + date.getUTCDate() + "/" + (date.getUTCFullYear().toString().substr(-2)); // Format the date in "m/d/yy" format in UTC
     
     // Overwrite the Channel and Date values for all rows based on what the user selected.
     csvData = csvData.map(function(row) {
@@ -208,60 +351,6 @@ document.getElementById('convert-btn').addEventListener('click', function() {
         row.date = formattedDate;
         return row;
     });
-
-    // List of clipName values to omit
-    var omitClipNames = [
-        // Atmosphere House Ads
-        "ATM_Content Submit QR.mp4",
-        "ATM_Content Submit QR_Music 2.mp4",
-        "ATM_HouseAd_2023_V2.mp4",
-        "ATM_YouAreWatching.mp4",
-        "ATM_YouAreWatching_2.mp4",
-        "ATM_YouAreWatching_3.mp4",
-        
-        // From Justin Lescano
-        "Black Video",
-        "PhoneFrame.png",
-        "Logo_1080_B Viral_Left.png",
-        "Graphic",
-        "Humor Outro.mp4",
-        "Show Me The Funny Intro.mov",
-        "Redbull Graffiti.mp4",
-        "Daily scroll BG.mp4",
-        "Daily Scroll Intro.mov",
-        "Chive 2.0 Shape BG.mp4",
-        "DDOA TRANSITION.mov",
-        "DDOA INTRO.mp4",
-
-        // 1080p Clip Provider Logos
-        "Logo_1080_B Viral_Left.png",
-        "Logo_1080_B Viral_Right.png",
-        "Logo_1080_Caters Clips_Left.png",
-        "Logo_1080_Caters Clips_Right.png",
-        "Logo_1080_Collab Clips_Left.png",
-        "Logo_1080_Collab Clips_Right.png",
-        "Logo_1080_FAILARMY_Left.png",
-        "Logo_1080_FAILARMY_Right.png",
-        "Logo_1080_GoPro_Left.png",
-        "Logo_1080_GoPro_Right.png",
-        "Logo_1080_Jukin_Left.png",
-        "Logo_1080_Jukin_Right.png",
-        "Logo_1080_LPE360_Left.png",
-        "Logo_1080_LPE360_Right.png",
-        "Logo_1080_People Are Awesome V1_Left.png",
-        "Logo_1080_People Are Awesome V1_Right.png",
-        "Logo_1080_People Are Awesome V2_Left.png",
-        "Logo_1080_People Are Awesome V2_Right.png",
-        "Logo_1080_Quattro (5sec Fade)_Left.mov",
-        "Logo_1080_Quattro_Left.png",
-        "Logo_1080_Quattro_Right.png",
-        "Logo_1080_The Pet Collective V1_Left.png",
-        "Logo_1080_The Pet Collective V1_Right.png",    ,
-        "Logo_1080_The Pet Collective V2_Left.png",
-        "Logo_1080_The Pet Collective V2_Right.png",
-        "Logo_1080_TIH_Left.png",
-        "Logo_1080_TIH_Right.png"
-    ];
 
     // Filter out rows in comps with duplicate clips and also rows whose clipName ends with .aep or .aegraphic
     csvData = csvData.filter(function(row, index) {
@@ -291,11 +380,11 @@ document.getElementById('convert-btn').addEventListener('click', function() {
                     }
                 }
             }
-    
+
             // Return true (keep the row) if the compName and clipName are not found in previous rows
             return !isDuplicate;
         }
-    
+
         // If the row doesn't have 'compName' and 'clipName' properties or they aren't strings, keep it in the array
         return true;
     });
@@ -306,11 +395,12 @@ document.getElementById('convert-btn').addEventListener('click', function() {
     // Convert the array of objects to CSV data
     var data = csvData.map(obj => Object.values(obj).join(',')).join('\n');
     var numberOfRowsInData = (data.match(/\n/g) || []).length;
-    console.log(`numberOfRowsInData: ${numberOfRowsInData}`);
+    if (adminMode) {
+        console.log(`numberOfRowsInData: ${numberOfRowsInData}`);
+    }
 
     if (numberOfRowsInData > 1) {
-        // Combine headers and data
-        var csvString = headers + data;
+        var csvString = headers + data; // Combine headers and data
         csvDataToCopy = csvString;
 
         // Create a Blob with the CSV data
@@ -341,23 +431,17 @@ document.getElementById('convert-btn').addEventListener('click', function() {
     setTimeout(function() { URL.revokeObjectURL(url); }, 0);
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////
+/////// COPY CELLS ///////
+//////////////////////////
 
-
-
-// Get reference to the Copy button
-var copyButton = document.getElementById("copyButton");
-
-// Add click event listener to the button
-copyButton.addEventListener("click", function() {
-    // Get the Channel dropdown value
-    var channel = document.getElementById('channel-dropdown').value;
-
-    // Get the Date selector value
-    var dateDropdown = document.getElementById('date');
+document.getElementById("copy-cells-btn").addEventListener("click", function() {
+    var channel = document.getElementById('channel-dropdown').value; // Get the Channel dropdown value
+    var dateDropdown = document.getElementById('date'); // Get the Date selector value
     var date = new Date(dateDropdown.value);
-    // Format the date in "m/d/yy" format in UTC
-    var formattedDate = (date.getUTCMonth() + 1) + "/" + date.getUTCDate() + "/" + (date.getUTCFullYear().toString().substr(-2));
+    var formattedDate = (date.getUTCMonth() + 1) + "/" + date.getUTCDate() + "/" + (date.getUTCFullYear().toString().substr(-2)); // Format the date in "m/d/yy" format in UTC
     
     // Overwrite the Channel and Date values for all rows based on what the user selected.
     csvData = csvData.map(function(row) {
@@ -365,28 +449,6 @@ copyButton.addEventListener("click", function() {
         row.date = formattedDate;
         return row;
     });
-
-    // List of clipName values to omit
-    var omitClipNames = [
-        // House Ads
-        "ATM_Content Submit QR.mp4",
-        "ATM_Content Submit QR_Music 2.mp4",
-        "ATM_HouseAd_2023_V2.mp4",
-        "ATM_YouAreWatching.mp4",
-        "ATM_YouAreWatching_2.mp4",
-        "ATM_YouAreWatching_3.mp4",
-        // Bug Boxes
-        "ATM Bug (Right).png",
-        "ATM Bug (Left).png",
-        "ATM BUG_720_Lower Left.png",
-        "ATM BUG_720_Lower Right.png",
-        "ATM BUG_720_Top Left.png",
-        "ATM BUG_720_Top Right.png",
-        "ATM BUG_1080_Lower Left.png",
-        "ATM BUG_1080_Lower Right.png",
-        "ATM BUG_1080_Top Left.png",
-        "ATM BUG_1080_Top Right.png",
-    ];
 
     // Filter out rows in comps with duplicate clips and also rows whose clipName ends with .aep or .aegraphic
     csvData = csvData.filter(function(row, index) {
@@ -432,22 +494,22 @@ copyButton.addEventListener("click", function() {
     // Convert the array of objects to CSV data
     var data = csvData.map(obj => {
         return Object.values(obj).map(val => {
-        // Replace undefined values with an empty string
-        if (typeof val === 'undefined') {
-            val = '';
-        }   
-        // Remove the outer set of quotation marks from the value if they exist
-        if (typeof val === 'string' && val.charAt(0) === '"' && val.charAt(val.length - 1) === '"') {
-            val = val.slice(1, -1);
-        }
-        // Add double quotes around the value
-        return `"${val}"`;
+            // Replace undefined values with an empty string
+            if (typeof val === 'undefined') {
+                val = '';
+            }   
+            // Remove the outer set of quotation marks from the value if they exist
+            if (typeof val === 'string' && val.charAt(0) === '"' && val.charAt(val.length - 1) === '"') {
+                val = val.slice(1, -1);
+            }
+            
+            // Add double quotes around the value
+            return `"${val}"`;
         }).join('\t');
     }).join('\n');
 
     if (data) {
-        // Combine headers and data
-        var csvString = headers + data;
+        var csvString = headers + data; // Combine headers and data
         csvDataToCopy = csvString;
 
         if (channel === "Select Channel") {
@@ -460,17 +522,10 @@ copyButton.addEventListener("click", function() {
             // Append the textarea to the document body
             document.body.appendChild(textarea);
 
-            // Select the text inside the textarea
-            textarea.select();
-
-            // Copy the selected text to the clipboard
-            document.execCommand("copy");
-
-            // Remove the textarea from the document body
-            document.body.removeChild(textarea);
-
-            // Alert the user that the data has been copied
-            messageText.innerHTML = "Copied CSV Data!";
+            textarea.select(); // Select the text inside the textarea
+            document.execCommand("copy"); // Copy the selected text to the clipboard
+            document.body.removeChild(textarea); // Remove the textarea from the document body
+            messageText.innerHTML = "Copied CSV Data!"; // Alert the user that the data has been copied
         }
     } else if (!xml) {
         messageText.innerHTML = "Upload XML";
@@ -479,9 +534,11 @@ copyButton.addEventListener("click", function() {
     }
 });
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-
+//////////////////////////
+/// DISPLAY HIERARCHY ////
+//////////////////////////
 
 // Show the visual hierarchy of the XML both on the webpage and in the browser's console.
 function displayHierarchy(xml) {
@@ -510,61 +567,55 @@ function displayHierarchy(xml) {
 
         // Sort the array of bins based on their names.
         binArray.sort((a, b) => {
-        var nameA = a.getElementsByTagName('name')[0].textContent.toUpperCase(); // ignore upper and lowercase
-        var nameB = b.getElementsByTagName('name')[0].textContent.toUpperCase(); // ignore upper and lowercase
-        if (nameA < nameB) {
-            return -1;
-        }
-        if (nameA > nameB) {
-            return 1;
-        }
-        // names must be equal
-        return 0;
+            var nameA = a.getElementsByTagName('name')[0].textContent.toUpperCase(); // ignore upper and lowercase
+            var nameB = b.getElementsByTagName('name')[0].textContent.toUpperCase(); // ignore upper and lowercase
+            if (nameA < nameB) {
+                return -1;
+            }
+            if (nameA > nameB) {
+                return 1;
+            }
+            
+            // names must be equal
+            return 0;
         });
 
         // Process the bins in the sorted order.
         for (var i = 0; i < binArray.length; i++) {
-        processBin(binArray[i], xmlHierarchyDiv);
+            processBin(binArray[i], xmlHierarchyDiv);
         }
     }
-    
-    csvRowsCount = csvData.length;
-    //console.log(csvRowsCount);
     messageText.innerHTML = "";
 }
 
+//////////////////////////
+////////// BINS //////////
+//////////////////////////
 
-
-
-
-// Add each bin to the visual hierarchy.
 function processBin(binElement, parentElement) {
     // Get the current bin's name from its nested <name> element.
     var binName = binElement.getElementsByTagName('name')[0].textContent;
-    console.log(`\nBin: ${binName}\n`);
+    if (adminMode) {
+        console.log(`\nBin: ${binName}\n`);
+    }
 
     // Create a new <div> element to represent this bin in the HTML output.
     var binDiv = document.createElement('div');
-    // Add the 'element' class to this bin.
-    binDiv.classList.add('element');
+    binDiv.classList.add('element'); // Add the 'element' class to this bin.
 
     // Create a <div> for a line break with custom height.
     var lineBreakDiv = document.createElement('div');
     lineBreakDiv.classList.add('custom-line-break');
-    // Create a line break element.
-    var lineBreak = document.createElement('br');
-    // Append the line break to the <div>.
-    lineBreakDiv.appendChild(lineBreak);
-    // Append the <div> to the bin's div.
-    binDiv.appendChild(lineBreakDiv);
+    var lineBreak = document.createElement('br'); // Create a line break element.
+    lineBreakDiv.appendChild(lineBreak); // Append the line break to the <div>.
+    binDiv.appendChild(lineBreakDiv); // Append the <div> to the bin's div.
 
     // Create a checkbox input element
     var binCheckbox = document.createElement('input');
     binCheckbox.type = 'checkbox';
     binCheckbox.id = 'checkbox-' + binName;  // Make id unique by appending bin name
     binCheckbox.classList.add('bin-checkbox');  // Add your custom checkbox class
-    // Append this checkbox to the bin's <div> element.
-    binDiv.appendChild(binCheckbox);
+    binDiv.appendChild(binCheckbox); // Append this checkbox to the bin's <div> element.
 
     // Create a label for the checkbox
     var binLabel = document.createElement('label');
@@ -624,7 +675,6 @@ function processBin(binElement, parentElement) {
             }
         }
     }
-
     // Get all direct child <sequence> elements from within the current <bin> element.
     var sequenceElements = binElement.getElementsByTagName('children')[0]?.children;
 
@@ -637,9 +687,9 @@ function processBin(binElement, parentElement) {
     }
 }
 
-
-
-
+//////////////////////////
+/////// SEQUENCES ////////
+//////////////////////////
 
 // Find segments that start with a string from segmentStartingLetters and initiate the processing for those in alphabetical order.
 function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, displayedSequences) {
@@ -651,11 +701,9 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
         var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
         if (sequenceNameElement) {
             var sequenceName = sequenceNameElement.textContent;
-            //console.log(`sequenceName: ${sequenceName}`);
 
             // Revised version 6/20/24 with a check for new segment starting text:
             var segmentsThatStartWithSegmentLetters = segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix));
-            console.log(`segmentsThatStartWithSegmentLetters: ${segmentsThatStartWithSegmentLetters}`);
 
             return segmentsThatStartWithSegmentLetters;
         }
@@ -680,16 +728,11 @@ function displaySequenceHierarchy(sequenceElements, parentElement, indentLevel, 
     }
 }
 
-
-
-
-
 // Process comps within ATM segments.
 function processSequence(sequenceElement, parentElement, indentLevel, displayedSequences) {
     // Get the 'name' element from the current sequence
     var sequenceNameElement = sequenceElement.getElementsByTagName('name')[0];
-    // Get the sequence id
-    var sequenceId = sequenceElement.getAttribute('id');
+    var sequenceId = sequenceElement.getAttribute('id'); // Get the sequence id
     let sequenceName;
 
     // If the <sequence> element has no nested <name> element, find the element with the same id that does have it.
@@ -699,23 +742,22 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
         
         // If the matching element was found:
         if (foundElement) {
-            // Save the found element to sequenceElement.
-            sequenceElement = foundElement.parentElement;
-
-            // Save the textContent of the name tag to sequenceName
-            sequenceName = foundElement.textContent;
-
-            // console.log(`Found ${sequenceId}: ${sequenceName}`);
+            sequenceElement = foundElement.parentElement; // Save the found element to sequenceElement.
+            sequenceName = foundElement.textContent; // Save the textContent of the name tag to sequenceName
         } else {
-            console.log(`ERROR: SEQUENCE NOT FOUND`);
+            if (adminMode) {
+                console.log(`ERROR: SEQUENCE NOT FOUND`);
+            }
         }
     } else {
         // Get the sequence name
         sequenceName = sequenceNameElement.textContent;
     }
 
-    console.log(`\n\n\nSEQ: ${sequenceName}`);
-    console.log(`SEQ ID: ${sequenceId}`);    
+    if (adminMode) {
+        console.log(`\n\n\nSEQ: ${sequenceName}`);
+        console.log(`SEQ ID: ${sequenceId}`);    
+    }
 
     // If this sequence has not already been displayed...
     if (!displayedSequences.has(sequenceId)) {
@@ -725,15 +767,11 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
         // Create a <div> for a line break with custom height.
         var lineBreakDiv = document.createElement('div');
         lineBreakDiv.classList.add('custom-line-break');
-        // Create a line break element.
-        var lineBreak = document.createElement('br');
-        // Append the line break to the <div>.
-        lineBreakDiv.appendChild(lineBreak);
-        // Append the <div> to the parent element.
-        parentElement.appendChild(lineBreakDiv);
+        var lineBreak = document.createElement('br'); // Create a line break element.
+        lineBreakDiv.appendChild(lineBreak); // Append the line break to the <div>.
+        parentElement.appendChild(lineBreakDiv); // Append the <div> to the parent element.
 
-        // Create a <div> for the sequence.
-        var sequenceDiv = document.createElement('div');
+        var sequenceDiv = document.createElement('div'); // Create a <div> for the sequence.
         // Add the 'element' class and the appropriate indentation level class.
         sequenceDiv.classList.add('element');
         sequenceDiv.classList.add(`indent-level-${indentLevel}`);
@@ -747,8 +785,7 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
         sequenceCheckbox.type = 'checkbox';
         sequenceCheckbox.id = 'checkbox-' + sequenceName;
         sequenceCheckbox.classList.add('sequence-checkbox');
-        // Append this checkbox to the sequence's <div> element.
-        sequenceDiv.appendChild(sequenceCheckbox);
+        sequenceDiv.appendChild(sequenceCheckbox); // Append this checkbox to the sequence's <div> element.
 
         // Create a label for the checkbox
         var sequenceLabel = document.createElement('label');
@@ -793,10 +830,8 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
         // Set the text content to the sequence name.
         seqText.textContent = sequenceName;
 
-        // Append the <span> to the sequence <div>.
-        sequenceDiv.appendChild(seqText);
-        // Append the sequence <div> to the parent element.
-        parentElement.appendChild(sequenceDiv);
+        sequenceDiv.appendChild(seqText); // Append the <span> to the sequence <div>.
+        parentElement.appendChild(sequenceDiv); // Append the sequence <div> to the parent element.
 
         // If the sequence does NOT start with an accepted initial text string (from the segmentStartingLetters array), treat it as a comp instead of a segment (show its media files).
         if (!segmentStartingLetters.some(prefix => sequenceName.startsWith(prefix))) {
@@ -807,15 +842,13 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
             var videoNamesSet = new Set();
             var audioNamesSet = new Set();
 
-            //console.log(`mediaElements.length: ${mediaElements.length}`);
-
             // Loop through each media element.
             for (var j = 0; j < mediaElements.length; j++) {
                 // Get all 'video' and 'audio' elements within the current media element.
                 var videoElements = mediaElements[j].getElementsByTagName('video');
                 var audioElements = mediaElements[j].getElementsByTagName('audio');
 
-                if (j === 0) {
+                if (j === 0 && adminMode) {
                     console.log(`^^^audioElements length: ${audioElements.length}`);
                 }
 
@@ -837,53 +870,47 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             // Find the file element with the same id and a nested <name> element.
                             var videoFoundElement = xml.querySelector(`file[id="${fileId}"] name`);
                             
-                            // If the matching element was found:
-                            if (videoFoundElement) {
-                                // Save the textContent of the name tag to fileName
-                                clipFileName = videoFoundElement.textContent;
-                                //console.log(`Found video with ${fileId}: ${clipFileName}`);
-                            } else {
+                            if (videoFoundElement) { // If the matching element was found:
+                                clipFileName = videoFoundElement.textContent; // Save the textContent of the name tag to fileName
+                            } else if (adminMode) {
                                 console.log(`ERROR: VIDEO <FILE> ELEMENT NOT FOUND`);
                             }
                         }
 
                         if (clipFileName) { 
                             let compName = sequenceName;
-                            // console.log(`compName: ${compName}`);
-
-                            var sequenceCheckbox = parentElement.querySelector('.sequence-checkbox');
+                            let sequenceCheckbox = parentElement.querySelector('.sequence-checkbox');
                             segmentName = sequenceCheckbox.id.replace('checkbox-', '');
-                            // console.log(`SEGMENT NAME: ${segmentName}`);
                             
                             // If the sequence does not start with an approved string from segmentStartingLetters:
                             // Assume that the sequence is a comp, not a segment.
                             if (!segmentStartingLetters.some(prefix => segmentName.startsWith(prefix))) {
                                 // Assume it's a nested comp, so segmentName is actually a comp name.
                                 compName = segmentName;
-                                // console.log(`compName is now: ${compName}`);
                                 // Because we assume it's a nested comp, its segment name should match the previous row's segment name.
                                 if (prevSegmentName !== null) {
                                     segmentName = prevSegmentName;
-                                    // console.log(`segmentName is now: ${segmentName}`);
                                 }
                             }
 
                             // Provider
                             let clipProvider = null;
                             clipProvider = provider(clipFileName);    
+
                             // Clip ID
                             let clipID = null;
                             clipID = needsClipID(clipProvider);
+
                             // Category
                             let clipCategory = null;
                             clipCategory = category(clipFileName, clipProvider)
+
                             // Clip URL
                             const clipURL = track(clipFileName, clipProvider, clipCategory);                                
                             
                             // Create an empty array to store the music file names
-                            var uniqueMusicSet = new Set();
-                            var uniqueClipAudioSet = new Set();
-                            //var hasMusic = false;
+                            let uniqueMusicSet = new Set();
+                            let uniqueClipAudioSet = new Set();
 
                             // Repeat the process for audio file names.
                             [...audioElements].forEach(el => {
@@ -901,11 +928,9 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                                         uniqueMusicSet.add(musicFileName);
                                         musicFile = musicFileName;
                                     } else if (!musicFileName) {
-                                        // musicFileName will be false if there is none, so we'll output it as blank.
-                                        musicFile = "";
+                                        musicFile = ""; // musicFileName will be false if there is none, so we'll output it as blank.
                                     } else {
-                                        // Assume that the audio element was from a video's source audio.
-                                        uniqueClipAudioSet.add(musicFileName);
+                                        uniqueClipAudioSet.add(musicFileName); // Assume that the audio element was from a video's source audio.
                                     }
                                 });
                             });
@@ -917,7 +942,7 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             // Convert the Set back to an array
                             var listOfMusic = Array.from(uniqueMusicSet);
 
-                            // Set musicFile equal to listOfMusic joined by commas if it is not empty
+                            // Set musicFile equal to listOfMusic joined by commas if it is not empty.
                             if (listOfMusic.length > 0) {
                                 musicFile = listOfMusic.join(", ");
                             }
@@ -926,7 +951,10 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                                 musicFile = prevMusicName;
                             }
 
-                            console.log(`VID: ${clipFileName}`);
+                            if (adminMode) {
+                                console.log(`VID: ${clipFileName}`);
+                            }
+
                             videoNamesSet.add(clipFileName);
 
                             var row = {
@@ -943,14 +971,14 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                             };
 
                             csvData.push(row);
-                            //console.log(row);
                         }
                         prevSegmentName = segmentName;
-                        // console.log(`prevSegmentName is now set to: ${prevSegmentName}`);
                         prevMusicName = musicFile;
                     });
                 });
-                console.log(`AUD: ${musicFile}`);
+                if (adminMode) {
+                    console.log(`AUD: ${musicFile}`);
+                }
             }
 
             // For each unique video name, create a new div, add the appropriate classes and text, and append it to the sequence div.
@@ -976,7 +1004,10 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
                 mediaDiv.textContent = name;
                 sequenceDiv.appendChild(mediaDiv);
             });
-            console.log(``);
+
+            if (adminMode) {
+                console.log(``);
+            }
         }
 
         // Get all nested 'sequence' elements from the current sequence.
@@ -987,4 +1018,273 @@ function processSequence(sequenceElement, parentElement, indentLevel, displayedS
             processSequence(nestedSequenceElements[i], sequenceDiv, indentLevel + 1, displayedSequences);
         }
     }
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//////////////////////////
+//////// AIRTABLE ////////
+//////////////////////////
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dropdown = document.getElementById('channel-dropdown');
+    const uploadButton = document.getElementById('upload-airtable-btn');
+
+    dropdown.addEventListener('change', () => {
+        const selectedValue = dropdown.value;
+        const isValidChannel = airtableBases.some(base => base.name === selectedValue);
+
+        uploadButton.disabled = !isValidChannel;
+        uploadButton.classList.toggle('inactive-btn', !isValidChannel);
+    });
+});
+
+// Original fieldMapping (used by convertCSVtoAirtableRecords)
+const fieldMapping = {
+    'segName': 'XTA_Segment Name',
+    'compName': 'XTA_Comp Name',
+    'clipName': 'Clip File Name',
+    'clipURL': 'Clip URL',
+    'musicFile': 'Music File Name',
+    'channel': 'Channel',
+    'clipID': 'Clip ID',
+    'provider': 'Provider',
+    'category': 'Category',
+    'date': 'Posted Date'
+};
+
+async function uploadToAirtable(baseId, records, apiKey) {
+    const tableName = 'Clips';
+    const url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}`;
+
+    const chunks = chunkArray(records, 10); // Airtable API max is 10 records per request
+
+    for (const chunk of chunks) {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ records: chunk })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            console.error('Error uploading to Airtable:', data);
+            throw new Error(`Airtable upload failed: ${data.error?.message}`);
+        }
+    }
+
+    messageText.innerHTML = 'Uploaded to Airtable!';
+}
+
+function chunkArray(arr, size) {
+    return Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+        arr.slice(i * size, i * size + size)
+    );
+}
+
+// Remove any extra quotation marks and trim
+function cleanValue(value) {
+    if (typeof value === 'string') {
+        let cleanedValue = value.trim();
+        if (cleanedValue.startsWith('"') && cleanedValue.endsWith('"')) {
+            cleanedValue = cleanedValue.substring(1, cleanedValue.length - 1);
+        }
+        return cleanedValue.trim(); // Trim again in case of spaces inside quotes
+    }
+    return value; // Return as is if it was not a string
+}
+
+function convertCSVtoAirtableRecords(processedRecordsArray) {
+    return processedRecordsArray.map(processedRow => {
+        return { fields: processedRow };
+    });
+}
+
+document.getElementById('upload-airtable-btn').addEventListener('click', async () => {
+    const uploadButton = document.getElementById('upload-airtable-btn');
+
+    // If already successfully uploaded, do nothing else.
+    if (hasSuccessfullyUploaded) {
+        if(adminMode) console.log("Upload button clicked, but an upload already succeeded this session. No action taken.");
+        alert("You have already successfully uploaded data in this session! Refresh the page to upload a new XML.");
+        return;
+    }
+    
+    const channelDropdown = document.getElementById('channel-dropdown');
+    const dateDropdown = document.getElementById('date');
+
+    if (!channelDropdown || !dateDropdown) {
+        alert('Channel or Date dropdown element is missing from the page.');
+        return;
+    }
+
+    const selectedChannelName = channelDropdown.value;
+    const dateValue = dateDropdown.value;
+    const tableName = 'Clips'; // Define your target table name
+
+    if (selectedChannelName === "Select Channel" || !selectedChannelName) {
+        alert('Please select a Channel first.');
+        return;
+    }
+    if (!dateValue) {
+        alert('Please select a Date first.');
+        return;
+    }
+    if (!csvData || !Array.isArray(csvData) || csvData.length === 0) {
+        alert('CSV data is missing, not in the correct array format, or empty.');
+        console.error('csvData is invalid or empty:', csvData);
+        return;
+    }
+
+    // Find the baseId corresponding to the selectedChannelName from the backend-provided list
+    const selectedBase = airtableBases.find(base => base.name === selectedChannelName);
+
+    if (!selectedBase || !selectedBase.id) {
+        alert(`The selected channel "${selectedChannelName}" is not configured for Airtable uploads or has no valid Base ID. Please check backend configuration or select a different channel.`);
+        // Disable the button again if it was somehow enabled
+        const uploadButton = document.getElementById('upload-airtable-btn');
+        uploadButton.disabled = true;
+        uploadButton.classList.add('inactive-btn');
+        return;
+    }
+    const baseId = selectedBase.id; // Use the ID from the matched base
+
+    if (adminMode) {
+        console.log(`Selected Channel: ${selectedChannelName}, Mapped Base ID: ${baseId}`);
+    }
+
+    const dateObj = new Date(dateValue + 'T00:00:00Z');
+    let formattedMonth = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
+    let formattedDay = dateObj.getUTCDate().toString().padStart(2, '0');
+    let year = dateObj.getUTCFullYear().toString().slice(-2);
+    const formattedDateForAirtableField = `${formattedMonth}/${formattedDay}/${year}`;
+
+    const recordsToProcess = csvData.map(row => {
+        const newRow = { ...row };
+        newRow.channel = selectedChannelName; // Use the selected channel name
+        newRow.date = formattedDateForAirtableField;
+        return newRow;
+    });
+
+    const processedFieldData = recordsToProcess.map(csvRow => {
+        const recordFields = {};
+        for (const [csvKey, targetKey] of Object.entries(fieldMapping)) {
+            if (csvRow.hasOwnProperty(csvKey)) {
+                const cleaned = cleanValue(csvRow[csvKey]);
+                if (cleaned !== undefined && cleaned !== null && cleaned !== '') {
+                    recordFields[targetKey] = cleaned;
+                } else if (targetKey === 'Channel' || targetKey === 'Posted Date') {
+                    recordFields[targetKey] = csvRow[csvKey];
+                }
+            }
+        }
+        return recordFields;
+    });
+
+    const airtableRecordsPayload = convertCSVtoAirtableRecords(processedFieldData);
+
+    // Add "Processing Status" to the last record
+    if (airtableRecordsPayload.length > 0) {
+        const lastRecordIndex = airtableRecordsPayload.length - 1;
+        // Ensure the 'fields' object exists
+        if (!airtableRecordsPayload[lastRecordIndex].fields) {
+            airtableRecordsPayload[lastRecordIndex].fields = {};
+        }
+        // Add or update the "Processing Status" field.
+        airtableRecordsPayload[lastRecordIndex].fields["Processing Status"] = "Processing";
+        if (adminMode) {
+            console.log("📝 Added 'Processing Status: Pending' to the last record:\n", airtableRecordsPayload[lastRecordIndex]);
+        }
+    }
+
+    if (adminMode) {
+        console.log('Final records being sent to backend:', JSON.stringify(airtableRecordsPayload, null, 2));
+    }
+
+    messageText.innerHTML = 'Uploading...';
+    uploadButton.disabled = true; // Disable button at the start of the attempt
+
+    try {
+        const response = await fetch(`${herokuApiBaseUrl}/api/upload-to-airtable`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                baseId: baseId, // Send the dynamically found baseId
+                tableName: tableName,
+                records: airtableRecordsPayload
+            })
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            console.error('Error uploading to Airtable via backend:', result);
+            throw new Error(result.error || `Airtable upload failed with status: ${response.status}`);
+        }
+        messageText.innerHTML = result.message || 'Uploaded to Airtable successfully!';
+        if (adminMode) {
+            console.log('Upload successful:', result);
+        }
+        hasSuccessfullyUploaded = true; // Set flag on successful upload
+        // Button remains disabled due to hasSuccessfullyUploaded being true (checked in finally and dropdown listener)
+    } catch (err) {
+        console.error('Upload failed:', err);
+        messageText.innerHTML = `Upload failed: ${err.message}. Check console.`;
+        alert(`Upload failed!\n${err.message}`);
+        // hasSuccessfullyUploaded remains false, so button might be re-enabled in finally
+    } finally {
+        // Re-enable button only if the upload hasn't succeeded yet AND current channel is valid
+        if (!hasSuccessfullyUploaded) {
+            const currentSelectedChannelName = document.getElementById('channel-dropdown').value;
+            const currentCorrespondingBase = airtableBases.find(base => base.name === currentSelectedChannelName);
+            const isChannelCurrentlyValid = currentSelectedChannelName !== 'Select Channel' && currentSelectedChannelName !== '' && currentCorrespondingBase;
+            
+            if (isChannelCurrentlyValid) {
+                uploadButton.disabled = false;
+            } else {
+                uploadButton.disabled = true; // Keep it disabled if channel became invalid during attempt
+            }
+        } else {
+             uploadButton.disabled = true; // Explicitly ensure it's disabled if successful
+        }
+    }
+});
+
+function setupChannelDropdownListener() {
+    const dropdown = document.getElementById('channel-dropdown');
+    const uploadButton = document.getElementById('upload-airtable-btn');
+
+    dropdown.addEventListener('change', () => {
+        // If an upload has already succeeded this session, keep the button disabled.
+        if (hasSuccessfullyUploaded) {
+            uploadButton.disabled = true;
+            uploadButton.classList.add('inactive-btn');
+            if(adminMode) console.log("Channel changed, but upload already succeeded. Button remains disabled.");
+            return;
+        }
+        const selectedChannelName = dropdown.value;
+        // Check if the selected channel name has a corresponding base in our backend-provided list
+        const correspondingBase = airtableBases.find(base => base.name === selectedChannelName);
+        
+        const isValidAndConfiguredChannel = selectedChannelName !== 'Select Channel' && selectedChannelName !== '' && correspondingBase;
+
+        uploadButton.disabled = !isValidAndConfiguredChannel;
+        uploadButton.classList.toggle('inactive-btn', !isValidAndConfiguredChannel);
+
+        if (adminMode) {
+            if (isValidAndConfiguredChannel) {
+                console.log(`Selected ${selectedChannelName} (Base ID: ${correspondingBase.id}). Upload button enabled.`);
+            } else if (selectedChannelName !== 'Select Channel' && selectedChannelName !== '') {
+                console.log(`No Base ID found for ${selectedChannelName}. Upload button disabled.`);
+            } else {
+                console.log("No channel selected, or 'Select Channel' chosen. Upload button disabled.");
+            }
+        }
+    });
+    // Initial state: disable button until a valid, configured channel is selected
+    uploadButton.disabled = true;
+    uploadButton.classList.add('inactive-btn');
 }

@@ -3,7 +3,7 @@ export function track(filename, provider, category) {
   if (provider === "Waiting..." || category === "Waiting...") {
     return "Waiting for info...";
   }
-  if (provider === "SELECT MANUALLY" || category === "SELECT PROVIDER") {
+  if (provider === "" || category === "") {
     return "ADD CLIP URL MANUALLY";
   }
   
@@ -229,7 +229,7 @@ export function provider(filename) {
   if (filename.indexOf("ViralHog") != -1) {
     return "ViralHog";
   }
-  return "SELECT MANUALLY";
+  return ""; // This was "SELECT MANUALLY"
 }
 
 
@@ -314,7 +314,7 @@ export function category(filename, provider) {
         return "Twitter";
       }
   }
-  return "SELECT PROVIDER";
+  return ""; // This was "SELECT PROVIDER"
 }
 
 

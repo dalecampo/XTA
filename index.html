@@ -7,113 +7,119 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <img src="XTA Logo (Transparent)_300x150.png" alt="XTA Logo">
-    <div class="circle">
-        <div class="instructions-icon-1">?</div>
-        <span class="instructions-label">How To Get Started</span>
-    </div>
-    <div class="overlay-1">
-        <div class="instructions-1">
-            <h3>Creating the XML</h3>
-            <ol>
-                <li>In Premiere Pro, within your Project Panel, deselect all items.</li>
-                <li>Go to File > Export > Final Cut Pro XML.</li>
-                <li>Put the XML into your project folder's 4_Project Files subfolder.</li>
-                <li>Drag/drop or click to upload your XML on this page.</li>
-            </ol>
-        </div>
-    </div>
-    <div class="file-upload">
-        <input type="file" id="xmlFileUpload" accept=".xml">
-        <label for="xmlFileUpload" id="uploadLabel">Add XML File</label>
-    </div>
-    <br>
-    <div class="checkbox-input">
-        <input type="checkbox" id="showMediaFilesCheckbox" class="media-checkbox">
-        <label for="showMediaFilesCheckbox" class="media-custom-checkbox"></label>
-        <span class="heading-2">Show Media Files</span>
-    </div>
-    <br>
-    <div id="xmlHierarchy" class="xml-container"></div>
-    <br>
-    <form>
-        <div>
-            <label for="channel-dropdown">Channel:</label>
-            <select id="channel-dropdown" name="option" value="Select Channel">
-                <option value="Select Channel" selected>Select Channel</option>
-                <option value="AFV KIDS">AFV KIDS</option>
-                <option value="AFV TV">AFV TV</option>
-                <option value="ALPINE TV">ALPINE TV</option>
-                <option value="ANGRY BIRDS">ANGRY BIRDS</option>
-                <option value="ATM FOOD">ATM FOOD</option>
-                <option value="ATMOSPHERE'S DRONE">ATMOSPHERE'S DRONE</option>
-                <option value="BEACH BUM TV">BEACH BUM TV</option>
-                <option value="BOB ROSS">BOB ROSS</option>
-                <option value="CALIFORNIA TV">CALIFORNIA TV</option>
-                <option value="CHEEKY">CHEEKY</option>
-                <option value="CHIVE TV">CHIVE TV</option>
-                <option value="CRAFTY">CRAFTY</option>
-                <option value="DEEP DIVE">DEEP DIVE</option>
-                <option value="DRIVE TV">DRIVE TV</option>
-                <option value="EASTER TV">EASTER TV</option>
-                <option value="ESCAPE TV">ESCAPE TV</option>
-                <option value="EYE CANDY">EYE CANDY</option>
-                <option value="FEAST">FEAST</option>
-                <option value="FIREPLACE TV">FIREPLACE TV</option>
-                <option value="FORM TV">FORM TV</option>
-                <option value="GAMESPROUT TV">GAMESPROUT TV</option>
-                <option value="GUINNESS WORLD RECORDS">GUINNESS WORLD RECORDS</option>
-                <option value="HALLOWEEN TV">HALLOWEEN TV</option>
-                <option value="HAPPY TV">HAPPY TV</option>
-                <option value="HOLIDAY TV">HOLIDAY TV</option>
-                <option value="NITRO CIRCUS TV">NITRO CIRCUS TV</option>
-                <option value="ODDLY SATISFYING">ODDLY SATISFYING</option>
-                <option value="PAWS TV">PAWS TV</option>
-                <option value="RED BULL TV">RED BULL TV</option>
-                <option value="ST. PATRICK'S TV">ST. PATRICK'S TV</option>
-                <option value="SUPERHUMAN">SUPERHUMAN</option>
-                <option value="SUPER TOONS TV">SUPER TOONS TV</option>
-                <option value="TATTOO">TATTOO</option>
-                <option value="THROTTLE">THROTTLE</option>
-                <option value="UNTAMED">UNTAMED</option>
-                <option value="VALENTINE'S TV">VALENTINE'S TV</option>
-                <option value="WAYPOINT TV">WAYPOINT TV</option>
-                <option value="WPT">WPT</option>
-                <option value="X GAMES">X GAMES</option>
-            </select>
-        </div>
-        <div>
-            <label for="date">Date Posting:</label>
-            <input type="date" id="date" name="date">
-        </div>
-        <span class="bottom-buttons">
-            <button type="button" id="copyButton">Copy CSV Data</button>
-            <button type="button" id="convert-btn">Download CSV</button>
-        </span>
-        <div id="message-text"></div>
+    
+    <div id="googleSignInButton"></div>
+
+    <div id="main-content">
         <div class="circle">
-            <div class="instructions-icon-2">?</div>
-            <span class="instructions-label">How To Use The CSV</span>
+            <div class="instructions-icon-1">?</div>
+            <span class="instructions-label">How To Get Started</span>
         </div>
-        <div class="overlay-2">
-            <div class="instructions-2">
-                <h3>Option 1: Copy/Paste CSV Data</h3>
+        <div class="overlay-1">
+            <div class="instructions-1">
+                <h3>Creating the XML</h3>
                 <ol>
-                    <li>In VOD Content Tracking, go to your channel's tab.</li>
-                    <li>Use CMD+Shift+V to paste your copied tracking data.</li>
-                    <li>Fix "Add Manually" fields and remove rows as needed.</li>
-                </ol>
-                <h3>Option 2: Importing a CSV</h3>
-                <ol>
-                    <li>In your channel dashboard, create a blank sheet/tab.</li>
-                    <li>Go to File > Import and select your CSV.</li>
-                    <li>In the popup dialog, select Replace current sheet.</li>
-                    <li>Fix "Add Manually" fields and remove rows as needed.</li>
-                    <li>Copy the corrected tracking. Use CMD+Shift+V to paste into VOD Content Tracking.</li>
+                    <li>In Premiere Pro, within your Project Panel, deselect all items.</li>
+                    <li>Go to File > Export > Final Cut Pro XML.</li>
+                    <li>Put the XML into your project folder's 4_Project Files subfolder.</li>
+                    <li>Drag/drop or click to upload your XML on this page.</li>
                 </ol>
             </div>
         </div>
-    </form>
+        <div class="file-upload">
+            <input type="file" id="xmlFileUpload" accept=".xml">
+            <label for="xmlFileUpload" id="uploadLabel">Add XML File</label>
+        </div>
+        <br>
+        <div class="checkbox-input">
+            <input type="checkbox" id="showMediaFilesCheckbox" class="media-checkbox">
+            <label for="showMediaFilesCheckbox" class="media-custom-checkbox"></label>
+            <span class="heading-2">Show Media Files</span>
+        </div>
+        <br>
+        <div id="xmlHierarchy" class="xml-container"></div>
+        <br>
+        <form>
+            <div>
+                <label for="channel-dropdown">Channel:</label>
+                <select id="channel-dropdown" name="option" value="Select Channel">
+                    <option value="Test Channel" selected>Test Channel</option>
+                    <option value="Select Channel" selected>Select Channel</option>
+                    <option value="AFV Kids">AFV Kids</option>
+                    <option value="AFV TV">AFV TV</option>
+                    <option value="Alpine TV">Alpine TV</option>
+                    <option value="Angry Birds">Angry Birds</option>
+                    <option value="ATM Food">ATM Food</option>
+                    <option value="ATM Drone">ATM Drone</option>
+                    <option value="Beach Bum TV">Beach Bum TV</option>
+                    <option value="Bob Ross">Bob Ross</option>
+                    <option value="California TV">California TV</option>
+                    <option value="Cheeky">Cheeky</option>
+                    <option value="Chive TV">Chive TV</option>
+                    <option value="Crafty">Crafty</option>
+                    <option value="Deep Dive">Deep Dive</option>
+                    <option value="Drive TV">Drive TV</option>
+                    <option value="Easter TV">Easter TV</option>
+                    <option value="Escape TV">Escape TV</option>
+                    <option value="Fireplace TV">Fireplace TV</option>
+                    <option value="Form TV">Form TV</option>
+                    <option value="Guinness World Records">Guinness World Records</option>
+                    <option value="Halloween TV">Halloween TV</option>
+                    <option value="Happy TV">Happy TV</option>
+                    <option value="Holiday TV">Holiday TV</option>
+                    <option value="Oddly Satisfying">Oddly Satisfying</option>
+                    <option value="Paws TV">Paws TV</option>
+                    <option value="Red Bull TV">Red Bull TV</option>
+                    <option value="St. Patrick's TV">St. Patrick's TV</option>
+                    <option value="Superhuman">Superhuman</option>
+                    <option value="Super Toons TV">Super Toons TV</option>
+                    <option value="Tattoo">Tattoo</option>
+                    <option value="Throttle">Throttle</option>
+                    <option value="Untamed">Untamed</option>
+                    <option value="Valentine's TV">Valentine's TV</option>
+                    <option value="WPT">WPT</option>
+                    <option value="X Games">X Games</option>
+                </select>
+            </div>
+            <div>
+                <label for="date">Date Posting:</label>
+                <input type="date" id="date" name="date">
+            </div>
+
+            <span class="bottom-buttons">
+                <button type="button" id="copy-cells-btn">Copy Cells</button>
+                <button type="button" id="download-csv-btn">Download CSV</button>
+                <button type="button" id="upload-airtable-btn" class="inactive-btn" disabled>Upload to Airtable</button>
+            </span>
+            <div id="message-text"></div>
+            <div class="circle">
+                <div class="instructions-icon-2">?</div>
+                <span class="instructions-label">How To Use The CSV</span>
+            </div>
+            <div class="overlay-2">
+                <div class="instructions-2">
+                    <h3>Option 1: Copy/Paste CSV Data</h3>
+                    <ol>
+                        <li>In VOD Content Tracking, go to your channel's tab.</li>
+                        <li>Use CMD+Shift+V to paste your copied tracking data.</li>
+                        <li>Fix "Add Manually" fields and remove rows as needed.</li>
+                    </ol>
+                    <h3>Option 2: Importing a CSV</h3>
+                    <ol>
+                        <li>In your channel dashboard, create a blank sheet/tab.</li>
+                        <li>Go to File > Import and select your CSV.</li>
+                        <li>In the popup dialog, select Replace current sheet.</li>
+                        <li>Fix "Add Manually" fields and remove rows as needed.</li>
+                        <li>Copy the corrected tracking. Use CMD+Shift+V to paste into VOD Content Tracking.</li>
+                    </ol>
+                </div>
+            </div>
+        </form>
+    </div>
     <script type="module" src="script.js"></script>
     <script>
         var today = new Date();
