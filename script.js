@@ -7,7 +7,7 @@ let prevMusicName = null;
 let xml;
 let showMediaFiles = false; // When set to true, media files become visible on the webpage.
 
-let adminMode = true;
+let adminMode = false;
 let airtableBases = [];
 let hasSuccessfullyUploaded = false; // NEW: Tracks if a successful upload has occurred this session
 
@@ -171,6 +171,17 @@ let segmentStartingLetters = [
 
 // List of clipName values to omit
 let omitClipNames = [
+    // "AE Attribution Bottom Right Square/AE Attribution Bottom Right Square.aegraphic",
+    // "Graphic",
+    // "Chive_1080_Attribution/Chive_1080_Attribution.aegraphic",
+    // "SH_VERTICAL_JL_V01 to V04.mov",
+    // "Happy Border 1.png",
+    // "Chive 2.0 Triangle BG overlay.mp4",
+    // "Grid BG.mp4",
+    // "Chive 2.0 Shape BG.mp4",
+    // "Chive 2.0 Line BG.mp4",
+    // "ChiveTV_LocationPin.aegraphic",
+    
     // Atmosphere House Ads
     "ATM_Content Submit QR.mp4",
     "ATM_Content Submit QR_Music 2.mp4",
@@ -216,7 +227,7 @@ let omitClipNames = [
     "Logo_1080_Quattro_Left.png",
     "Logo_1080_Quattro_Right.png",
     "Logo_1080_The Pet Collective V1_Left.png",
-    "Logo_1080_The Pet Collective V1_Right.png",    ,
+    "Logo_1080_The Pet Collective V1_Right.png",
     "Logo_1080_The Pet Collective V2_Left.png",
     "Logo_1080_The Pet Collective V2_Right.png",
     "Logo_1080_TIH_Left.png",
