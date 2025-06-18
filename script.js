@@ -7,7 +7,7 @@ let prevMusicName = null;
 let xml;
 let showMediaFiles = false; // When set to true, media files become visible on the webpage.
 
-let adminMode = false;
+let adminMode = true;
 let airtableBases = [];
 let hasSuccessfullyUploaded = false; // NEW: Tracks if a successful upload has occurred this session
 
@@ -171,16 +171,42 @@ let segmentStartingLetters = [
 
 // List of clipName values to omit
 let omitClipNames = [
-    // "AE Attribution Bottom Right Square/AE Attribution Bottom Right Square.aegraphic",
-    // "Graphic",
-    // "Chive_1080_Attribution/Chive_1080_Attribution.aegraphic",
-    // "SH_VERTICAL_JL_V01 to V04.mov",
-    // "Happy Border 1.png",
-    // "Chive 2.0 Triangle BG overlay.mp4",
-    // "Grid BG.mp4",
-    // "Chive 2.0 Shape BG.mp4",
-    // "Chive 2.0 Line BG.mp4",
-    // "ChiveTV_LocationPin.aegraphic",
+    // Daniel's list
+    "AE Attribution Bottom Right Square/AE Attribution Bottom Right Square.aegraphic",
+    "Graphic",
+    "Chive_1080_Attribution/Chive_1080_Attribution.aegraphic",
+    "SH_VERTICAL_JL_V01 to V04.mov",
+    "Happy Border 1.png",
+    "Chive 2.0 Triangle BG overlay.mp4",
+    "Grid BG.mp4",
+    "Chive 2.0 Shape BG.mp4",
+    "Chive 2.0 Line BG.mp4",
+    "ChiveTV_LocationPin.aegraphic",
+
+    // Collin's Chive media
+    "CartoonCityStreet_Transition-003.mov",
+    "CitySwoop_Transition-002.mov",
+    "CTV Travels Intro.mp4",
+    "CTV_AdventureTransition.mov",
+    "CTV_ClothWipeTransition.mov",
+    "CTV_CSlide_DarkTransition.mov",
+    "CTV_CSlide_LightTransition.mov",
+    "CTV_DinoTransition.mov",
+    "CTV_LettersTransition.mov",
+    "CTV_PlasticWipeTransition.mov",
+    "CTV_QueenBeeTransition.mov",
+    "CTV_TrickShotTransition.mov",
+    "DDOA TRANSITION.mov",
+    "Glitch Trans.mov",
+    "SchoolOfHardKnocks_Transition.mov",
+    "Chive Transition _The Hoard_V1.mov",
+    "Chive Transition_The Board_V1.mov",
+    "Chive-TV-Transition01.mov",
+    "Chive-TV-Transition02.mov",
+    "CTV_FlamingosTrans.mov",
+    "CTV_DockTrans.mov",
+    "# Chive Transition 1.mov",
+    "# Chive Transition 2.mov",
     
     // Atmosphere House Ads
     "ATM_Content Submit QR.mp4",
@@ -1114,21 +1140,26 @@ function convertCSVtoAirtableRecords(processedRecordsArray) {
     });
 }
 
+// Button click for Upload to Airtable
 document.getElementById('upload-airtable-btn').addEventListener('click', async () => {
     const uploadButton = document.getElementById('upload-airtable-btn');
+    // Assuming 'messageText' is an existing HTML element for displaying messages
+    const messageText = document.getElementById('message-text'); 
 
-    // If already successfully uploaded, do nothing else.
+    // If already successfully uploaded, inform the user and do nothing else.
     if (hasSuccessfullyUploaded) {
         if(adminMode) console.log("Upload button clicked, but an upload already succeeded this session. No action taken.");
-        alert("You have already successfully uploaded data in this session! Refresh the page to upload a new XML.");
+        messageText.innerHTML = "You have already successfully uploaded data in this session! Refresh the page to upload a new XML.";
         return;
     }
     
     const channelDropdown = document.getElementById('channel-dropdown');
     const dateDropdown = document.getElementById('date');
 
+    // Validate presence of dropdown elements
     if (!channelDropdown || !dateDropdown) {
-        alert('Channel or Date dropdown element is missing from the page.');
+        messageText.innerHTML = 'Error: Channel or Date dropdown element is missing from the page.';
+        console.error('Channel or Date dropdown element is missing from the page.');
         return;
     }
 
@@ -1136,27 +1167,28 @@ document.getElementById('upload-airtable-btn').addEventListener('click', async (
     const dateValue = dateDropdown.value;
     const tableName = 'Clips'; // Define your target table name
 
+    // Validate user selections
     if (selectedChannelName === "Select Channel" || !selectedChannelName) {
-        alert('Please select a Channel first.');
+        messageText.innerHTML = 'Please select a Channel first.';
         return;
     }
     if (!dateValue) {
-        alert('Please select a Date first.');
+        messageText.innerHTML = 'Please select a Date first.';
         return;
     }
     if (!csvData || !Array.isArray(csvData) || csvData.length === 0) {
-        alert('CSV data is missing, not in the correct array format, or empty.');
+        messageText.innerHTML = 'CSV data is missing, not in the correct array format, or empty. Please upload XML.';
         console.error('csvData is invalid or empty:', csvData);
         return;
     }
 
-    // Find the baseId corresponding to the selectedChannelName from the backend-provided list
+    // Find the baseId corresponding to the selectedChannelName from the backend-provided list (assuming airtableBases is defined globally)
     const selectedBase = airtableBases.find(base => base.name === selectedChannelName);
 
+    // Validate Airtable base configuration
     if (!selectedBase || !selectedBase.id) {
-        alert(`The selected channel "${selectedChannelName}" is not configured for Airtable uploads or has no valid Base ID. Please check backend configuration or select a different channel.`);
-        // Disable the button again if it was somehow enabled
-        const uploadButton = document.getElementById('upload-airtable-btn');
+        messageText.innerHTML = `Error: The selected channel "${selectedChannelName}" is not configured for Airtable uploads or has no valid Base ID. Please check backend configuration or select a different channel.`;
+        // Disable the button if configuration is invalid
         uploadButton.disabled = true;
         uploadButton.classList.add('inactive-btn');
         return;
@@ -1167,27 +1199,103 @@ document.getElementById('upload-airtable-btn').addEventListener('click', async (
         console.log(`Selected Channel: ${selectedChannelName}, Mapped Base ID: ${baseId}`);
     }
 
+    // Format the date for Airtable field (e.g., "MM/DD/YY")
     const dateObj = new Date(dateValue + 'T00:00:00Z');
     let formattedMonth = (dateObj.getUTCMonth() + 1).toString().padStart(2, '0');
     let formattedDay = dateObj.getUTCDate().toString().padStart(2, '0');
     let year = dateObj.getUTCFullYear().toString().slice(-2);
     const formattedDateForAirtableField = `${formattedMonth}/${formattedDay}/${year}`;
 
-    const recordsToProcess = csvData.map(row => {
-        const newRow = { ...row };
-        newRow.channel = selectedChannelName; // Use the selected channel name
-        newRow.date = formattedDateForAirtableField;
-        return newRow;
+    // Create a deep copy of csvData to work with, preserving the original csvData
+    // This is crucial if csvData might be modified by other functions (like CSV download)
+    // or if the user expects the original state to be maintained after an upload attempt.
+    let dataForUpload = JSON.parse(JSON.stringify(csvData));
+
+    // Overwrite the Channel and Date values for all rows in the upload batch
+    // based on what the user selected. This prepares the data for filtering.
+    dataForUpload = dataForUpload.map(function(row) {
+        row.channel = selectedChannelName;
+        row.date = formattedDateForAirtableField;
+        return row;
     });
 
-    const processedFieldData = recordsToProcess.map(csvRow => {
+    // ************************************************
+    // Start of Duplicate Removal and Filtering Logic
+    // ************************************************
+
+    // Store initial count for logging purposes (if adminMode is true)
+    const initialRecordCount = dataForUpload.length;
+
+    // Filter out rows with duplicate clips based on 'compName' and 'clipName',
+    // and also remove rows whose 'clipName' ends with ".aep", ".aegraphic",
+    // or is present in the 'omitClipNames' list.
+    // 'omitClipNames' is assumed to be an array defined in an accessible scope.
+    dataForUpload = dataForUpload.filter(function(row, index, self) { // 'self' refers to the array being filtered (dataForUpload)
+        // Ensure the row has the necessary properties and they are strings
+        if (row.hasOwnProperty('compName') && typeof row.compName === 'string' &&
+            row.hasOwnProperty('clipName') && typeof row.clipName === 'string') {
+            
+            // Trim whitespace and remove any surrounding quotes from compName and clipName
+            const compName = row.compName.trim().replace(/^["']|["']$/g, '');
+            const clipName = row.clipName.trim().replace(/^["']|["']$/g, '');
+    
+            // Filter out if clipName ends with specific extensions or is in the omit list
+            // Added a check for 'omitClipNames' existence to prevent errors if it's undefined
+            if (clipName.endsWith('.aep') || clipName.endsWith('.aegraphic') || (typeof omitClipNames !== 'undefined' && omitClipNames.includes(clipName))) {
+                return false; // Exclude this row
+            }
+    
+            // Check for duplicates within the current batch of dataForUpload
+            // We iterate through previously processed rows (up to the current index)
+            let isDuplicate = false;
+            for (let i = 0; i < index; i++) {
+                const prevRow = self[i]; // Compare against original items in the current filtering batch
+                if (prevRow.hasOwnProperty('compName') && typeof prevRow.compName === 'string' &&
+                    prevRow.hasOwnProperty('clipName') && typeof prevRow.clipName === 'string') {
+                    const prevCompName = prevRow.compName.trim().replace(/^["']|["']$/g, '');
+                    const prevClipName = prevRow.clipName.trim().replace(/^["']|["']$/g, '');
+                    
+                    // If both compName and clipName match a previous row, it's a duplicate
+                    if (prevCompName === compName && prevClipName === clipName) {
+                        isDuplicate = true;
+                        break; // No need to check further
+                    }
+                }
+            }
+            return !isDuplicate; // Keep the row if it's not a duplicate
+        }
+
+        // If the row does not have 'compName'/'clipName' or they are not strings, keep it by default
+        return true;
+    });
+
+    if (adminMode) {
+        console.log(`Initial records for upload: ${initialRecordCount}, Records after filtering: ${dataForUpload.length}`);
+    }
+
+    // If no data remains after filtering, inform the user and stop the upload process.
+    if (dataForUpload.length === 0) {
+        messageText.innerHTML = "No valid records to upload after filtering for duplicates and omitted clip names.";
+        uploadButton.disabled = false; // Re-enable the button as no upload happened
+        return;
+    }
+
+    // ************************************************
+    // End of Duplicate Removal and Filtering Logic
+    // ************************************************
+
+    // Map the filtered and formatted data to the structure required for Airtable fields
+    // Assuming 'fieldMapping' and 'cleanValue' are defined globally or in an accessible scope.
+    const processedFieldData = dataForUpload.map(csvRow => {
         const recordFields = {};
         for (const [csvKey, targetKey] of Object.entries(fieldMapping)) {
             if (csvRow.hasOwnProperty(csvKey)) {
                 const cleaned = cleanValue(csvRow[csvKey]);
+                // Only include field if it has a cleaned value, unless it's Channel or Posted Date
                 if (cleaned !== undefined && cleaned !== null && cleaned !== '') {
                     recordFields[targetKey] = cleaned;
                 } else if (targetKey === 'Channel' || targetKey === 'Posted Date') {
+                    // Crucial fields like Channel and Posted Date should always be included, even if empty
                     recordFields[targetKey] = csvRow[csvKey];
                 }
             }
@@ -1195,19 +1303,19 @@ document.getElementById('upload-airtable-btn').addEventListener('click', async (
         return recordFields;
     });
 
+    // Convert the processed field data into the Airtable records payload format
     const airtableRecordsPayload = convertCSVtoAirtableRecords(processedFieldData);
 
-    // Add "Processing Status" to the last record
+    // Add "Processing Status" to the last record for backend tracking
     if (airtableRecordsPayload.length > 0) {
         const lastRecordIndex = airtableRecordsPayload.length - 1;
-        // Ensure the 'fields' object exists
+        // Ensure the 'fields' object exists before adding a property
         if (!airtableRecordsPayload[lastRecordIndex].fields) {
             airtableRecordsPayload[lastRecordIndex].fields = {};
         }
-        // Add or update the "Processing Status" field.
         airtableRecordsPayload[lastRecordIndex].fields["Processing Status"] = "Processing";
         if (adminMode) {
-            console.log("📝 Added 'Processing Status: Pending' to the last record:\n", airtableRecordsPayload[lastRecordIndex]);
+            console.log("📝 Added 'Processing Status: Processing' to the last record:\n", airtableRecordsPayload[lastRecordIndex]);
         }
     }
 
@@ -1215,40 +1323,46 @@ document.getElementById('upload-airtable-btn').addEventListener('click', async (
         console.log('Final records being sent to backend:', JSON.stringify(airtableRecordsPayload, null, 2));
     }
 
+    // Display upload status and disable the button during the upload process
     messageText.innerHTML = 'Uploading...';
-    uploadButton.disabled = true; // Disable button at the start of the attempt
+    uploadButton.disabled = true;
 
     try {
+        // Send the records to your backend API for Airtable upload
         const response = await fetch(`${herokuApiBaseUrl}/api/upload-to-airtable`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                baseId: baseId, // Send the dynamically found baseId
+                baseId: baseId, // Dynamically determined baseId
                 tableName: tableName,
                 records: airtableRecordsPayload
             })
         });
         const result = await response.json();
+
+        // Check if the upload was successful based on response status and custom success flag
         if (!response.ok || !result.success) {
             console.error('Error uploading to Airtable via backend:', result);
             throw new Error(result.error || `Airtable upload failed with status: ${response.status}`);
         }
+        
+        // Update message and set success flag
         messageText.innerHTML = result.message || 'Uploaded to Airtable successfully!';
         if (adminMode) {
             console.log('Upload successful:', result);
         }
         hasSuccessfullyUploaded = true; // Set flag on successful upload
-        // Button remains disabled due to hasSuccessfullyUploaded being true (checked in finally and dropdown listener)
+        // Button remains disabled if upload was successful (handled in finally block)
     } catch (err) {
+        // Handle upload errors
         console.error('Upload failed:', err);
-        messageText.innerHTML = `Upload failed: ${err.message}. Check console.`;
-        alert(`Upload failed!\n${err.message}`);
-        // hasSuccessfullyUploaded remains false, so button might be re-enabled in finally
+        messageText.innerHTML = `Upload failed: ${err.message}. Please check the console for more details.`;
     } finally {
-        // Re-enable button only if the upload hasn't succeeded yet AND current channel is valid
+        // Logic to re-enable or keep button disabled based on upload success and channel validity
         if (!hasSuccessfullyUploaded) {
+            // Re-enable only if upload failed AND current channel selection is valid
             const currentSelectedChannelName = document.getElementById('channel-dropdown').value;
             const currentCorrespondingBase = airtableBases.find(base => base.name === currentSelectedChannelName);
             const isChannelCurrentlyValid = currentSelectedChannelName !== 'Select Channel' && currentSelectedChannelName !== '' && currentCorrespondingBase;
@@ -1256,10 +1370,12 @@ document.getElementById('upload-airtable-btn').addEventListener('click', async (
             if (isChannelCurrentlyValid) {
                 uploadButton.disabled = false;
             } else {
-                uploadButton.disabled = true; // Keep it disabled if channel became invalid during attempt
+                // Keep disabled if channel became invalid during the attempt
+                uploadButton.disabled = true;
             }
         } else {
-             uploadButton.disabled = true; // Explicitly ensure it's disabled if successful
+             // Explicitly ensure it's disabled if successful, as new XML requires refresh
+            uploadButton.disabled = true;
         }
     }
 });
