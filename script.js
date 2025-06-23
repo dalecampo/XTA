@@ -7,7 +7,7 @@ let prevMusicName = null;
 let xml;
 let showMediaFiles = false; // When set to true, media files become visible on the webpage.
 
-let adminMode = true;
+let adminMode = false;
 let airtableBases = [];
 let hasSuccessfullyUploaded = false; // NEW: Tracks if a successful upload has occurred this session
 
@@ -171,6 +171,19 @@ let segmentStartingLetters = [
 
 // List of clipName values to omit
 let omitClipNames = [
+    // Tanner's list
+    "Chive-TV-Transition02.mov",
+    "# Chive Transition 1.mov",
+    "# Chive Transition 2.mov",
+    "Chive Transition _The Hoard_V1.mov",
+    "Chive-TV-Transition01.mov",
+    "Chive Transition_The Board_V1.mov",
+    "ATM-Logo-BUG-v2-RIGHT.png",
+    "C0tW_BUG.png",
+    "ChiveTV-COTW-JF-16x9/ChiveTV-COTW-JF-16x9.aegraphic",
+    "DDoA - INTRO + BG.mp4",
+    "ChiveTV Logo L3_FULL.png",
+    
     // Daniel's list
     "AE Attribution Bottom Right Square/AE Attribution Bottom Right Square.aegraphic",
     "Graphic",
