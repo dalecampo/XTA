@@ -4,7 +4,7 @@ export function track(filename, provider, category) {
     return "Waiting for info...";
   }
   if (provider === "" || category === "") {
-    return "ADD CLIP URL MANUALLY";
+    return "";
   }
   
   // Check if the provider is ArtGrid
@@ -112,7 +112,7 @@ export function track(filename, provider, category) {
     let regex;
 
     if (filename.indexOf(")_") === -1) {
-      return "FIX CLIP NAME";
+      return "";
     }
     // If the file name includes spaces, extract the value between ")" and the first space
     // This covers cases where an IG post has several videos and each is indexed like " - #_IG.mp4"
@@ -136,12 +136,12 @@ export function track(filename, provider, category) {
   }
 
   // Check if the category is YouTube
-  if (category === "YouTube") {
+  if (category === "YouTube" || (filename.slice(-6) == "YT.mp4")) {
     const regex = /_(.{11})_YT.mp4/;
     const match = filename.match(regex);
 
     if (filename.indexOf(")_") === -1) {
-      return "FIX CLIP NAME";
+      return "";
     }
     if (match) {
       const videoId = match[1];
@@ -152,7 +152,7 @@ export function track(filename, provider, category) {
   }
 
   else {
-    return "ADD CLIP URL MANUALLY";
+    return "";
   }
 }
 
@@ -161,8 +161,8 @@ export function track(filename, provider, category) {
 
 
 export function provider(filename) {
-  if (filename == "") {
-    return "Waiting...";
+  if(filename.startsWith("NostalgiaTV_")) {
+    return "No License";
   }
   if (filename.slice(-6) == "YT.mp4") {
     let contributor = username(filename);
@@ -277,6 +277,8 @@ export function category(filename, provider) {
       return "Paid License";
     case "NOAA":
       return "Free Stock Footage";
+    case "No License":
+        return "Nostalgia TV";
     case "OTV":
       return "Barter";
     case "Pexels":
